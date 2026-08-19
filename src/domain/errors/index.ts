@@ -1,0 +1,8 @@
+export { DomainError } from './domain.error'
+export { DuplicateSlugError } from './duplicate-slug.error'
+export { EmailAlreadyUsedError } from './email-already-used.error'
+export { ForbiddenActionError } from './forbidden-action.error'
+export { InvalidContentError } from './invalid-content.error'
+export { LastAdminError } from './last-admin.error'
+export { NotFoundError } from './not-found.error'
+export { UnauthorizedError } from './unauthorized.error'

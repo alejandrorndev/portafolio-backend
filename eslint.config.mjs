@@ -53,7 +53,16 @@ const INTERFACE_FORBIDDEN = [
 ]
 
 export default tseslint.config(
-  { ignores: ['dist/**', 'coverage/**', 'node_modules/**'] },
+  {
+    /*
+     * Los `__fixtures__` violan las reglas de capa a proposito: son la carnada
+     * de `src/architecture.spec.ts`, que corre ESLint contra ellos con
+     * `--no-ignore` y falla si alguno DEJA de ser rechazado. Se ignoran aqui
+     * para que `pnpm lint` no reporte las violaciones que existen para ser
+     * reportadas.
+     */
+    ignores: ['dist/**', 'coverage/**', 'node_modules/**', '**/__fixtures__/**'],
+  },
 
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -67,7 +76,16 @@ export default tseslint.config(
     },
     rules: {
       '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          // `const { id: _id, ...resto } = primitivos` es la forma de quitar una
+          // clave sin nombrarla dos veces. Marcarla como variable sin usar
+          // convierte un patron correcto en un error.
+          ignoreRestSiblings: true,
+        },
+      ],
       // Nest lanza excepciones y devuelve promesas por todas partes; estas dos
       // reglas solo generan ruido en un proyecto de este tipo.
       '@typescript-eslint/no-extraneous-class': 'off',

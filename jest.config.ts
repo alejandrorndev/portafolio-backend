@@ -51,6 +51,10 @@ const config: Config = {
     '!src/**/*.dto.ts',
     '!src/**/index.ts',
     '!src/infrastructure/database/orm/**',
+    // Interfaces mas un token de inyeccion: no hay comportamiento que probar.
+    '!src/domain/ports/**',
+    // Violan las reglas a proposito: son la carnada del test de arquitectura.
+    '!src/**/__fixtures__/**',
     '!src/infrastructure/database/migrations/**',
     '!src/infrastructure/database/data-source.ts',
   ],

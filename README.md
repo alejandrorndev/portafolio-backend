@@ -94,7 +94,7 @@ peor que uno que no arranca.
 | Etapa | Descripción                  | Estado |
 | ----- | ---------------------------- | ------ |
 | 0     | Andamiaje                    | ✅     |
-| 1     | Dominio                      | ⬜     |
+| 1     | Dominio                      | ✅     |
 | 2     | Persistencia                 | ⬜     |
 | 3     | Casos de uso de contenido    | ⬜     |
 | 4     | Auth, roles y usuarios       | ⬜     |
