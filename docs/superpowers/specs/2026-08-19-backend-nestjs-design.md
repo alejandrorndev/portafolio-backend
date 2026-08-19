@@ -3,6 +3,7 @@
 **Fecha:** 2026-08-19
 **Autor:** Alejandro Restrepo Naranjo
 **Estado:** aprobado el diseño de arquitectura (Sección 3); resto pendiente de revisión
+**Revisión 2:** se añaden dos roles, `admin` y `editor` (§6.1)
 
 ---
 
@@ -42,7 +43,7 @@ tocar un solo componente. El README del front ya lo anticipaba.
 
 - API de contenido: perfil, proyectos, experiencia y skills. Lectura pública,
   escritura autenticada.
-- Autenticación de escrituras con un único usuario administrador.
+- Autenticación con dos roles, `admin` y `editor`, y administración de usuarios.
 - Seed que importa el contenido actual del front.
 - Swagger protegido, que hace de panel de administración provisional.
 - Despliegue en internet, gratis y sin tarjeta.
@@ -55,7 +56,8 @@ tocar un solo componente. El README del front ya lo anticipaba.
 | Mensajes de contacto | Fase 3. El formulario del front ya envía por su propia Server Action; un endpoint aquí no tendría consumidor hasta que el front se conecte |
 | Métricas y eventos | Fase 4 |
 | Conectar el front a la API | Fase 5, decisión aparte |
-| Blog, imágenes, multiusuario | Sin demanda real |
+| Registro público de usuarios, verificación por email y recuperación de contraseña | Los usuarios los crea el administrador. Un portafolio no tiene visitantes que necesiten cuenta, y esos tres flujos traen envío de correo —que es Fase 3— sin resolver ningún problema de hoy |
+| Blog e imágenes | Sin demanda real |
 
 ---
 
@@ -67,25 +69,31 @@ El dominio no importa nada de `@nestjs/*` ni de `typeorm`.
 ```
 src/
 ├── domain/
-│   ├── entities/          profile, project, experience-item, skill-category  (clases puras)
-│   ├── value-objects/     localized, slug, accent, hex-color, project-links, period
-│   ├── ports/             i-profile.repository, i-project.repository, i-token.service, i-hasher
-│   └── errors/            domain.error, not-found.error, duplicate-slug.error, invalid-content.error
+│   ├── entities/          profile, project, experience-item, skill-category, user  (clases puras)
+│   ├── value-objects/     localized, slug, accent, hex-color, project-links, period, role, email
+│   ├── ports/             i-profile.repository, i-project.repository, i-user.repository,
+│   │                      i-token.service, i-hasher
+│   └── errors/            domain.error, not-found.error, duplicate-slug.error, invalid-content.error,
+│                          forbidden-action.error, email-already-used.error, last-admin.error
 ├── application/
 │   ├── content/use-cases/ get-projects, get-project, create-project, update-project,
 │   │                      delete-project, reorder-projects  (y el juego equivalente para
 │   │                      profile, experience y skills)
-│   └── auth/use-cases/    login, verify-token
+│   ├── auth/use-cases/    login, verify-token, get-current-user
+│   └── users/use-cases/   list-users, create-user, update-user, change-password, delete-user,
+│                          ensure-bootstrap-admin
 ├── infrastructure/
 │   ├── database/orm/      entidades TypeORM (@Entity) + mappers ORM ⇄ dominio
 │   ├── database/repos/    implementaciones de los puertos del dominio
 │   ├── database/migrations/ + data-source.ts + seed/
 │   ├── config/            validación de variables de entorno al arrancar
 │   ├── security/          bcrypt-hasher.service, jwt-token.service
-│   └── modules/           content.module, auth.module, health.module
+│   └── modules/           content.module, auth.module, users.module, health.module
 └── interface/http/
-    ├── controllers/       public/ (lectura)  ·  admin/ (escritura, con guard)
-    ├── dto/               create-project.dto, update-project.dto, localized-text.dto, locale-query.dto
+    ├── controllers/       public/ (lectura)  ·  admin/ (escritura y usuarios, con guards)
+    ├── dto/               create-project.dto, update-project.dto, localized-text.dto,
+    │                      locale-query.dto, login.dto, create-user.dto
+    ├── guards/            jwt-auth.guard, roles.guard  +  @Roles() decorator
     ├── presenters/        resolución de idioma y forma de respuesta
     └── filters/           domain-error.filter
 ```
@@ -214,6 +222,22 @@ aparte es un campo que se puede desincronizar.
 `ON DELETE CASCADE`), `name`, `icon`, `position`. Aquí sí es tabla y no `jsonb`,
 porque los items se editan de a uno y son 28 con crecimiento previsible.
 
+**`users`**
+
+| Columna | Tipo | Notas |
+| --- | --- | --- |
+| `id` | `uuid` PK | |
+| `email` | `text` UNIQUE | se guarda en minúsculas; el índice único es sobre `lower(email)` |
+| `password_hash` | `text` | bcrypt, coste 12 |
+| `role` | `text` | `CHECK IN ('admin','editor')` |
+| `is_active` | `boolean` | `default true`; desactivar en lugar de borrar preserva la trazabilidad |
+| `created_at`, `updated_at` | `timestamptz` | |
+
+El `CHECK` sobre `role` y no un enum de Postgres a propósito: agregar un rol a un
+`CHECK` es una migración de una línea, mientras que `ALTER TYPE ... ADD VALUE` no
+se puede revertir dentro de una transacción. Con dos roles la diferencia es
+teórica; con cuatro deja de serlo.
+
 **`icon_catalog`** — `name` (`text` PK). El catálogo de iconos disponibles,
 sembrado desde `icons.generated.ts` del front. `skill_items.icon` es **FK contra
 esta tabla**.
@@ -301,6 +325,9 @@ front cuando se conecte.
 | `GET` · `PUT` · `DELETE` | `/v1/admin/projects/:id` |
 | `PATCH` | `/v1/admin/projects/reorder` |
 | — | mismo juego para `/v1/admin/experience` y `/v1/admin/skills` (con items anidados) |
+| `GET` · `POST` | `/v1/admin/users` — solo `admin` |
+| `PATCH` · `DELETE` | `/v1/admin/users/:id` — solo `admin` |
+| `PATCH` | `/v1/admin/users/:id/password` — solo `admin` |
 
 Los `GET` de `/admin` devuelven el objeto bilingüe completo y no aceptan `locale`.
 `reorder` recibe la lista de ids en el orden deseado y reasigna `position` en una
@@ -332,17 +359,77 @@ diario que sí necesita despertar la base de datos (§7.3).
 
 ## 6. Autenticación y errores
 
-### 6.1 Auth
+### 6.1 Auth y roles
 
-Un único administrador, con credenciales en variables de entorno:
-`ADMIN_EMAIL` y `ADMIN_PASSWORD_HASH` (bcrypt, coste 12). **No hay tabla de
-usuarios.** Para un portafolio de un solo dueño, una tabla trae endpoints de alta,
-baja, recuperación de contraseña y roles que nadie va a usar. Si algún día hacen
-falta, es una migración.
+Dos roles, y el reparto está en una sola frase: **el `editor` escribe contenido, el
+`admin` además borra y administra usuarios.**
+
+| Acción | anónimo | `editor` | `admin` |
+| --- | --- | --- | --- |
+| `GET /v1/*` públicos (texto resuelto) | ✔ | ✔ | ✔ |
+| `GET /v1/admin/*` (objeto bilingüe) | ✘ | ✔ | ✔ |
+| `POST`, `PUT` de contenido | ✘ | ✔ | ✔ |
+| `PATCH .../reorder` | ✘ | ✔ | ✔ |
+| `DELETE` de contenido | ✘ | ✘ | ✔ |
+| `/v1/admin/users/*` | ✘ | ✘ | ✔ |
+
+Por qué `DELETE` queda solo en `admin`: crear y editar son reversibles —se corrige
+el texto y ya—, pero borrar un proyecto destruye contenido bilingüe que costó
+escribir y no hay historial que lo recupere. Es la única asimetría real entre los
+dos roles, y es la que justifica que el rol exista.
+
+**No hay registro público.** Los usuarios los crea un `admin` desde
+`POST /v1/admin/users`, con la contraseña en el cuerpo; el hash lo calcula el
+servidor y la contraseña nunca se guarda ni se registra en logs.
+
+**Bootstrap.** Un despliegue nuevo tiene la base vacía, así que no habría con qué
+autenticarse para crear el primer usuario. Al arrancar, si no existe ningún
+usuario con rol `admin`, se crea uno desde `ADMIN_EMAIL` y `ADMIN_PASSWORD_HASH`.
+Es idempotente: con un admin ya existente no hace nada, ni siquiera si el hash de
+la variable cambió. Consecuencia que hay que aceptar: **cambiar la contraseña se
+hace por API, no por variable de entorno.** Y si se pierde el acceso, el escape es
+un `UPDATE` en el editor SQL de Supabase — que es exactamente por qué no hace
+falta un flujo de recuperación por correo en esta fase.
 
 - `POST /v1/auth/login` → `{ accessToken, expiresIn }`. JWT firmado con
-  `JWT_SECRET`, vigencia 8 horas.
-- Guard de Nest con JWT en todo `/v1/admin/*`.
+  `JWT_SECRET`, vigencia 8 horas, con `{ sub, email, role }` en el payload.
+  Un usuario con `is_active = false` recibe 401 al intentar entrar.
+- `GET /v1/auth/me` → el usuario del token. El panel de la Fase 2 lo necesita para
+  saber si debe mostrar los botones de borrar.
+- `JwtAuthGuard` en todo `/v1/admin/*`, y `RolesGuard` leyendo el `role` del token.
+- **El `RolesGuard` deniega si la ruta no declara `@Roles(...)`.** Falla cerrado a
+  propósito: si mañana se agrega un controller de admin y alguien olvida el
+  decorador, el resultado es un 403 molesto en vez de un endpoint abierto. Un
+  guard que permite por omisión convierte un olvido en un agujero.
+- `@nestjs/throttler` en el login: 5 intentos por minuto por IP. En Render el
+  contenedor es persistente y de una sola instancia, así que el contador en
+  memoria **sí funciona** — no hace falta Redis. Esa es la diferencia con el front,
+  que necesita Upstash porque en Vercel cada invocación arranca limpia.
+- Sin refresh token, a propósito: con 8 horas de vigencia, el panel de la Fase 2
+  pedirá login una vez por jornada. Un ciclo de refresh es infraestructura de
+  sesión que dos usuarios no justifican todavía.
+
+**Invariante de dominio: siempre queda al menos un `admin` activo.** Borrar el
+último administrador, degradarlo a `editor` o desactivarlo lanza
+`LastAdminError`. Sin esa regla, un clic desafortunado deja el sistema sin nadie
+que pueda administrarlo y la única salida vuelve a ser el editor SQL de Supabase.
+Vive en el dominio y no en el controller porque es una regla del negocio, no del
+transporte: también tiene que cumplirse cuando la invoque un script.
+
+**Autorización en dos niveles**, por la misma razón que la validación de §3.4. El
+guard es la barrera HTTP y devuelve 403 antes de tocar la aplicación; además, los
+casos de uso de borrado reciben el rol del actor y lanzan `ForbiddenActionError`
+si no es `admin`. El guard cubre el tráfico HTTP; el caso de uso cubre las
+invocaciones desde el seed, desde scripts y desde tests, donde no hay guard que
+proteja nada.
+
+**Límite conocido:** como el rol viaja dentro del JWT, degradar a un `editor` o
+desactivarlo no surte efecto hasta que su token expire — hasta 8 horas. Verificar
+`is_active` contra la base de datos en cada petición eliminaría la ventana, pero
+convertiría cada llamada autenticada en una consulta extra y rompería el sentido de
+un token sin estado. Con dos usuarios de confianza y un `editor` que no puede
+borrar, el riesgo es aceptable. Si algún día hace falta cortar el acceso ya, rotar
+`JWT_SECRET` invalida todos los tokens al instante, gratis y sin código nuevo.
 - `/docs` no usa ese guard, usa **basic auth** (`express-basic-auth`) con las
   mismas credenciales del administrador. La razón es práctica: un guard de JWT
   espera una cabecera `Authorization: Bearer` que el navegador no envía al abrir
@@ -368,7 +455,10 @@ Los casos de uso nunca lanzan excepciones HTTP: lanzan errores de dominio. Un
 | `NotFoundError` | 404 | id que no existe |
 | `DuplicateSlugError` | 409 | crear un proyecto con un id ya usado |
 | `InvalidContentError` | 422 | violación de invariante del dominio (p. ej. `Localized` incompleto) |
-| `UnauthorizedError` | 401 | credenciales o token inválidos |
+| `UnauthorizedError` | 401 | credenciales o token inválidos, o usuario desactivado |
+| `ForbiddenActionError` | 403 | rol insuficiente (un `editor` intentando borrar) |
+| `EmailAlreadyUsedError` | 409 | crear un usuario con un correo ya registrado |
+| `LastAdminError` | 409 | borrar, degradar o desactivar al último `admin` activo |
 | fallo de DTO | 400 | lo produce el `ValidationPipe`, antes de llegar al caso de uso |
 
 La distinción entre 400 y 422 es intencional y sale de §3.4: **400 es "tu petición
@@ -455,7 +545,7 @@ molesta: cron-job.org.
 | --- | --- |
 | `DATABASE_URL` | Postgres de Supabase, cadena del pooler |
 | `JWT_SECRET` | firma de tokens |
-| `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH` | el único administrador |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH` | bootstrap del primer `admin` (§6.1); se ignoran si ya existe uno |
 | `CORS_ORIGINS` | orígenes permitidos, separados por coma |
 | `PORT` | lo inyecta Render |
 | `NODE_ENV` | |
@@ -489,7 +579,14 @@ Los tests de infraestructura y los e2e corren contra un Postgres real —un
 contra SQLite en memoria. SQLite no tiene `jsonb` ni `text[]`, así que probar ahí
 sería probar otro sistema.
 
-Un test que merece mención aparte: **el que compara la respuesta de los `GET`
+La matriz de permisos de §6.1 se prueba como matriz, no como casos sueltos: un
+test recorre cada combinación de rol y endpoint y verifica el código esperado
+(200/403). Escrita así, agregar un endpoint de admin obliga a declarar su fila, y
+un `@Roles` mal puesto sale en rojo. Se prueban también los dos invariantes que
+más caro cuestan si fallan: que el último `admin` no se pueda borrar ni degradar,
+y que el `RolesGuard` deniegue cuando falta el decorador.
+
+Otro test que merece mención aparte: **el que compara la respuesta de los `GET`
 públicos con las formas que exporta `@/content` del front**. Es el contrato que
 hace posible la Fase 5, y sin una prueba explícita se rompería sin que nadie se
 enterara hasta el día de conectar.
@@ -515,12 +612,15 @@ enterara hasta el día de conectar.
 2. El CRUD autenticado permite crear, editar, borrar y reordenar proyectos,
    experiencias y skills, y editar el perfil.
 3. Un intento de escritura sin token válido devuelve 401.
-4. El seed carga el contenido actual y correrlo dos veces no duplica nada.
-5. Cobertura ≥ 95% en las cuatro métricas.
-6. La API responde en su URL pública de internet, con Swagger protegido.
-7. Los dos cron de keepalive están verdes y el consumo mensual de Render se
+4. La matriz de §6.1 se cumple: un `editor` escribe y reordena contenido, recibe
+   403 al intentar cualquier `DELETE` y 403 en `/v1/admin/users/*`; un `admin`
+   hace todo. El último `admin` activo no se puede borrar, degradar ni desactivar.
+5. El seed carga el contenido actual y correrlo dos veces no duplica nada.
+6. Cobertura ≥ 95% en las cuatro métricas.
+7. La API responde en su URL pública de internet, con Swagger protegido.
+8. Los dos cron de keepalive están verdes y el consumo mensual de Render se
    mantiene por debajo de 750 horas.
-8. El coste total es \$0 y en ningún proveedor se registró una tarjeta.
+9. El coste total es \$0 y en ningún proveedor se registró una tarjeta.
 
 ---
 
