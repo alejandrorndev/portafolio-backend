@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+
+    /* NestJS necesita las dos para que la inyeccion por tipo funcione: sin
+       emitDecoratorMetadata, el contenedor no sabe que clase pedir. */
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    "declaration": false,
+    "sourceMap": true,
+    "incremental": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* Estricto de verdad. Las tres ultimas no vienen con `strict` y son las que
+       atrapan los errores caros: un indice que puede no existir, un opcional
+       que se asigna undefined y un override que ya no coincide. */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  },
+  "include": ["src/**/*", "test/**/*", "*.mjs", "*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

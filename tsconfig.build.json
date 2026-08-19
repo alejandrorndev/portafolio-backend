@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  /* jest.config.ts y los .mjs de configuracion viven en la raiz. Si entran al
+     build, TypeScript sube el rootDir a la raiz del proyecto y el resultado
+     queda en dist/src/main.js en vez de dist/main.js. */
+  "exclude": ["node_modules", "dist", "test", "**/*.spec.ts", "*.mjs", "jest.config.ts"]
+}

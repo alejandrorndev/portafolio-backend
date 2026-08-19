@@ -1,0 +1,8 @@
+# El proyecto se desarrolla en Windows y CI corre en Ubuntu. Sin esto, Git
+# entrega CRLF en el working tree de Windows y `prettier --check` falla en
+# local (endOfLine: "lf") mientras pasa en CI. Forzar LF en todas partes
+# elimina esa divergencia.
+* text=auto eol=lf
+
+# El lockfile no se revisa a mano en los diffs.
+pnpm-lock.yaml -diff linguist-generated=true

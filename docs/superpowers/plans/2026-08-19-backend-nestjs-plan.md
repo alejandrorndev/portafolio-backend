@@ -19,16 +19,16 @@ lo que aún no existe.
 La única excepción es la Etapa 0, que existe para que `pnpm verify` funcione desde
 el primer commit y no al final.
 
-| Etapa | Depende de | Estimación |
-| --- | --- | --- |
-| 0 · Andamiaje | — | 0.5 día |
-| 1 · Dominio | 0 | 2 días |
-| 2 · Persistencia | 1 | 2 días |
-| 3 · Casos de uso de contenido | 1 | 2 días |
-| 4 · Auth, roles y usuarios | 1, 2 | 2 días |
-| 5 · Capa HTTP | 3, 4 | 2 días |
-| 6 · Seed y contrato con el front | 5 | 1 día |
-| 7 · Deploy y operación | 6 | 1 día |
+| Etapa                            | Depende de | Estimación |
+| -------------------------------- | ---------- | ---------- |
+| 0 · Andamiaje                    | —          | 0.5 día    |
+| 1 · Dominio                      | 0          | 2 días     |
+| 2 · Persistencia                 | 1          | 2 días     |
+| 3 · Casos de uso de contenido    | 1          | 2 días     |
+| 4 · Auth, roles y usuarios       | 1, 2       | 2 días     |
+| 5 · Capa HTTP                    | 3, 4       | 2 días     |
+| 6 · Seed y contrato con el front | 5          | 1 día      |
+| 7 · Deploy y operación           | 6          | 1 día      |
 
 Cada etapa termina con un commit que pasa `pnpm verify`. Ninguna etapa se
 considera hecha con tests en rojo o cobertura por debajo del 95%.
@@ -110,7 +110,7 @@ entidad.
 2. **Migración inicial** con todo el §4: tablas `profile`, `projects`,
    `experience`, `skill_categories`, `skill_items`, `icon_catalog`, `users`; los
    `CHECK` de slug, hex, `https`, acento y rol; el `CHECK (link_demo IS NOT NULL
-   OR link_github IS NOT NULL)`; el `CHECK (id = 'singleton')` del perfil; el
+OR link_github IS NOT NULL)`; el `CHECK (id = 'singleton')` del perfil; el
    índice único sobre `lower(email)`; los índices de `position`.
 3. **Mappers** ORM ⇄ dominio, uno por agregado, con test de ida y vuelta: mapear
    a ORM y volver debe devolver una entidad equivalente. Es el test que atrapa el
@@ -237,7 +237,7 @@ portafolio completo en los dos idiomas. Segunda corrida sin cambios ni errores.
    dependencies, etapa final solo con producción y usuario no root. Escucha en
    `PORT`.
 2. **Entrypoint** que corre migraciones antes de arrancar Nest (Render no da
-   *pre-deploy command* en el plan free, y con una instancia no hay carrera).
+   _pre-deploy command_ en el plan free, y con una instancia no hay carrera).
 3. **Supabase**: proyecto nuevo, cadena del pooler (puerto 6543).
 4. **Render**: web service free desde el Dockerfile, variables de entorno,
    auto-deploy en `main`. Primer login con el admin del bootstrap.
@@ -257,12 +257,12 @@ uno. Especialmente el noveno: en ningún proveedor quedó registrada una tarjeta
 
 ## Riesgos de ejecución
 
-| Riesgo | Cómo se maneja |
-| --- | --- |
-| La cobertura al 95% se vuelve una carga en la capa HTTP | Los presenters y filtros son puros y fáciles de probar; el volumen real de tests está en dominio y aplicación, que son los baratos. Si algo queda difícil de cubrir, suele ser señal de que hace demasiado |
-| El seed depende de archivos de otro repositorio (`../portafoliov1`) | El contenido se copia a `infrastructure/database/seed/data/` en la Etapa 6, no se importa por ruta relativa. Un backend que no compila si mueves la carpeta del front sería un acoplamiento absurdo |
-| Etapa 7 revela un límite del free tier no previsto | El diseño no es específico de Render: es un contenedor con `DATABASE_URL`. El plan B documentado es Koyeb (scale-to-zero) o Vercel serverless |
-| Los tests e2e con Postgres real hacen lento el CI | Se separan: `test:unit` en cada push, `test:e2e` también pero con el service container, que en GitHub Actions arranca en segundos |
+| Riesgo                                                              | Cómo se maneja                                                                                                                                                                                             |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| La cobertura al 95% se vuelve una carga en la capa HTTP             | Los presenters y filtros son puros y fáciles de probar; el volumen real de tests está en dominio y aplicación, que son los baratos. Si algo queda difícil de cubrir, suele ser señal de que hace demasiado |
+| El seed depende de archivos de otro repositorio (`../portafoliov1`) | El contenido se copia a `infrastructure/database/seed/data/` en la Etapa 6, no se importa por ruta relativa. Un backend que no compila si mueves la carpeta del front sería un acoplamiento absurdo        |
+| Etapa 7 revela un límite del free tier no previsto                  | El diseño no es específico de Render: es un contenedor con `DATABASE_URL`. El plan B documentado es Koyeb (scale-to-zero) o Vercel serverless                                                              |
+| Los tests e2e con Postgres real hacen lento el CI                   | Se separan: `test:unit` en cada push, `test:e2e` también pero con el service container, que en GitHub Actions arranca en segundos                                                                          |
 
 ---
 

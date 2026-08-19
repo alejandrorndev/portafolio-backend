@@ -1,0 +1,5 @@
+# Dependencia transitiva con script de instalacion. Publica binarios
+# precompilados, asi que no hace falta ejecutarlo: sin esta lista pnpm sale con
+# codigo 1 y tumba el `pnpm install --frozen-lockfile` de CI.
+allowBuilds:
+  unrs-resolver: false

@@ -50,18 +50,18 @@ tocar un solo componente. El README del front ya lo anticipaba.
 
 ### Fuera de alcance, deliberadamente
 
-| Diferido | Por qué |
-| --- | --- |
-| Panel admin en Next.js | Fase 2. Swagger alcanza para administrar durante semanas, y construirlo ahora retrasaría el primer deploy útil en dos semanas |
-| Mensajes de contacto | Fase 3. El formulario del front ya envía por su propia Server Action; un endpoint aquí no tendría consumidor hasta que el front se conecte |
-| Métricas y eventos | Fase 4 |
-| Conectar el front a la API | Fase 5, decisión aparte |
+| Diferido                                                                          | Por qué                                                                                                                                                                                      |
+| --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Panel admin en Next.js                                                            | Fase 2. Swagger alcanza para administrar durante semanas, y construirlo ahora retrasaría el primer deploy útil en dos semanas                                                                |
+| Mensajes de contacto                                                              | Fase 3. El formulario del front ya envía por su propia Server Action; un endpoint aquí no tendría consumidor hasta que el front se conecte                                                   |
+| Métricas y eventos                                                                | Fase 4                                                                                                                                                                                       |
+| Conectar el front a la API                                                        | Fase 5, decisión aparte                                                                                                                                                                      |
 | Registro público de usuarios, verificación por email y recuperación de contraseña | Los usuarios los crea el administrador. Un portafolio no tiene visitantes que necesiten cuenta, y esos tres flujos traen envío de correo —que es Fase 3— sin resolver ningún problema de hoy |
-| Blog e imágenes | Sin demanda real |
+| Blog e imágenes                                                                   | Sin demanda real                                                                                                                                                                             |
 
 ---
 
-## 3. Arquitectura *(aprobada)*
+## 3. Arquitectura _(aprobada)_
 
 Dependencias en una sola dirección: `interface → application → domain ← infrastructure`.
 El dominio no importa nada de `@nestjs/*` ni de `typeorm`.
@@ -154,19 +154,19 @@ solo agregaría joins sin comprar nada.
 en `'singleton'` y un `CHECK (id = 'singleton')`. Es más simple que una tabla de
 configuración clave-valor y hace imposible el estado de "dos perfiles".
 
-| Columna | Tipo | Notas |
-| --- | --- | --- |
-| `id` | `text` PK | siempre `'singleton'` |
-| `full_name`, `brand`, `email` | `text` | |
-| `display_name` | `jsonb` | `{first, last}` — no es traducible |
-| `available` | `boolean` | |
-| `location`, `headline`, `role`, `summary` | `jsonb` | `Localized<string>` |
-| `bio` | `jsonb` | array de `Localized<string>`, orden significativo |
-| `typewriter_roles` | `jsonb` | array de `Localized<string>` |
-| `cv` | `jsonb` nullable | `Localized<string>`; `null` mientras no exista el PDF |
-| `socials` | `jsonb` | array de `{id, label, href, icon}` |
-| `stats` | `jsonb` | array de `{id, value, suffix, labelKey}` |
-| `created_at`, `updated_at` | `timestamptz` | |
+| Columna                                   | Tipo             | Notas                                                 |
+| ----------------------------------------- | ---------------- | ----------------------------------------------------- |
+| `id`                                      | `text` PK        | siempre `'singleton'`                                 |
+| `full_name`, `brand`, `email`             | `text`           |                                                       |
+| `display_name`                            | `jsonb`          | `{first, last}` — no es traducible                    |
+| `available`                               | `boolean`        |                                                       |
+| `location`, `headline`, `role`, `summary` | `jsonb`          | `Localized<string>`                                   |
+| `bio`                                     | `jsonb`          | array de `Localized<string>`, orden significativo     |
+| `typewriter_roles`                        | `jsonb`          | array de `Localized<string>`                          |
+| `cv`                                      | `jsonb` nullable | `Localized<string>`; `null` mientras no exista el PDF |
+| `socials`                                 | `jsonb`          | array de `{id, label, href, icon}`                    |
+| `stats`                                   | `jsonb`          | array de `{id, value, suffix, labelKey}`              |
+| `created_at`, `updated_at`                | `timestamptz`    |                                                       |
 
 `socials` y `stats` van como `jsonb` y no como tablas propias porque siempre se
 leen y se escriben junto al perfil y nunca se consultan por separado. Ese es el
@@ -175,22 +175,22 @@ solo agrega ceremonia.
 
 **`projects`**
 
-| Columna | Tipo | Notas |
-| --- | --- | --- |
-| `id` | `text` PK | slug kebab-case, `CHECK` con la misma expresión que el front |
-| `type`, `title`, `description` | `jsonb` | `Localized<string>` |
-| `tags` | `text[]` | nombres de tecnologías, no se traducen |
-| `icon` | `text` | emoji |
-| `gradient_from`, `gradient_to` | `text` | `CHECK (~ '^#[0-9a-fA-F]{6}$')` |
-| `link_demo`, `link_github` | `text` nullable | `CHECK` de prefijo `https://` |
-| `position` | `integer` | orden de presentación, único |
-| `created_at`, `updated_at` | `timestamptz` | |
+| Columna                        | Tipo            | Notas                                                        |
+| ------------------------------ | --------------- | ------------------------------------------------------------ |
+| `id`                           | `text` PK       | slug kebab-case, `CHECK` con la misma expresión que el front |
+| `type`, `title`, `description` | `jsonb`         | `Localized<string>`                                          |
+| `tags`                         | `text[]`        | nombres de tecnologías, no se traducen                       |
+| `icon`                         | `text`          | emoji                                                        |
+| `gradient_from`, `gradient_to` | `text`          | `CHECK (~ '^#[0-9a-fA-F]{6}$')`                              |
+| `link_demo`, `link_github`     | `text` nullable | `CHECK` de prefijo `https://`                                |
+| `position`                     | `integer`       | orden de presentación, único                                 |
+| `created_at`, `updated_at`     | `timestamptz`   |                                                              |
 
 Dos decisiones aquí:
 
 - El gradiente y los enlaces se guardan en **columnas separadas, no en `jsonb`**,
   porque tienen reglas que Postgres puede verificar. `CHECK (link_demo IS NOT NULL
-  OR link_github IS NOT NULL)` convierte la regla del front —"un proyecto sin
+OR link_github IS NOT NULL)` convierte la regla del front —"un proyecto sin
   ningún enlace no le sirve a nadie: es justo lo que un reclutador va a querer
   abrir"— en algo que la base de datos no permite violar, ni desde un seed, ni
   desde una migración, ni desde una consulta manual a las tres de la mañana.
@@ -200,16 +200,16 @@ Dos decisiones aquí:
 
 **`experience`**
 
-| Columna | Tipo | Notas |
-| --- | --- | --- |
-| `id` | `text` PK | slug |
-| `period_start` | `text` | etiqueta, no fecha: el front muestra "2024" o "Ene 2024" |
-| `period_end` | `text` nullable | `null` significa "en curso" |
-| `company` | `text` | |
-| `role`, `description` | `jsonb` | `Localized<string>` |
-| `stack` | `text[]` | |
-| `accent` | `text` | `CHECK IN ('purple','cyan','pink','gold')` |
-| `position` | `integer` | único |
+| Columna               | Tipo            | Notas                                                    |
+| --------------------- | --------------- | -------------------------------------------------------- |
+| `id`                  | `text` PK       | slug                                                     |
+| `period_start`        | `text`          | etiqueta, no fecha: el front muestra "2024" o "Ene 2024" |
+| `period_end`          | `text` nullable | `null` significa "en curso"                              |
+| `company`             | `text`          |                                                          |
+| `role`, `description` | `jsonb`         | `Localized<string>`                                      |
+| `stack`               | `text[]`        |                                                          |
+| `accent`              | `text`          | `CHECK IN ('purple','cyan','pink','gold')`               |
+| `position`            | `integer`       | único                                                    |
 
 `isCurrent` **no se almacena**: se deriva de `period_end IS NULL` en el presenter,
 igual que hoy el front lo deriva de `period.end === null`. Un campo booleano
@@ -224,14 +224,14 @@ porque los items se editan de a uno y son 28 con crecimiento previsible.
 
 **`users`**
 
-| Columna | Tipo | Notas |
-| --- | --- | --- |
-| `id` | `uuid` PK | |
-| `email` | `text` UNIQUE | se guarda en minúsculas; el índice único es sobre `lower(email)` |
-| `password_hash` | `text` | bcrypt, coste 12 |
-| `role` | `text` | `CHECK IN ('admin','editor')` |
-| `is_active` | `boolean` | `default true`; desactivar en lugar de borrar preserva la trazabilidad |
-| `created_at`, `updated_at` | `timestamptz` | |
+| Columna                    | Tipo          | Notas                                                                  |
+| -------------------------- | ------------- | ---------------------------------------------------------------------- |
+| `id`                       | `uuid` PK     |                                                                        |
+| `email`                    | `text` UNIQUE | se guarda en minúsculas; el índice único es sobre `lower(email)`       |
+| `password_hash`            | `text`        | bcrypt, coste 12                                                       |
+| `role`                     | `text`        | `CHECK IN ('admin','editor')`                                          |
+| `is_active`                | `boolean`     | `default true`; desactivar en lugar de borrar preserva la trazabilidad |
+| `created_at`, `updated_at` | `timestamptz` |                                                                        |
 
 El `CHECK` sobre `role` y no un enum de Postgres a propósito: agregar un rol a un
 `CHECK` es una migración de una línea, mientras que `ALTER TYPE ... ADD VALUE` no
@@ -275,16 +275,16 @@ Prefijo `/v1`. Swagger en `/docs`, protegido.
 
 ### 5.1 Lectura pública
 
-| Método | Ruta | Devuelve |
-| --- | --- | --- |
-| `GET` | `/v1/profile?locale=es` | perfil resuelto a un idioma |
-| `GET` | `/v1/projects?locale=es` | array ordenado por `position` |
-| `GET` | `/v1/projects/:id?locale=es` | un proyecto |
-| `GET` | `/v1/experience?locale=es` | array ordenado, con `isCurrent` derivado |
-| `GET` | `/v1/skills?locale=es` | categorías con sus items, ambas ordenadas |
+| Método | Ruta                         | Devuelve                                  |
+| ------ | ---------------------------- | ----------------------------------------- |
+| `GET`  | `/v1/profile?locale=es`      | perfil resuelto a un idioma               |
+| `GET`  | `/v1/projects?locale=es`     | array ordenado por `position`             |
+| `GET`  | `/v1/projects/:id?locale=es` | un proyecto                               |
+| `GET`  | `/v1/experience?locale=es`   | array ordenado, con `isCurrent` derivado  |
+| `GET`  | `/v1/skills?locale=es`       | categorías con sus items, ambas ordenadas |
 
 `locale` acepta `es` o `en`; por defecto `es` (el `DEFAULT_LOCALE` del front). Un
-valor distinto es `400`, no un silencioso *fallback*: si alguien pide `fr`, la
+valor distinto es `400`, no un silencioso _fallback_: si alguien pide `fr`, la
 respuesta correcta es decirle que no existe.
 
 Las respuestas espejan exactamente los tipos `ResolvedProfile`, `ResolvedProject`,
@@ -317,17 +317,17 @@ front cuando se conecte.
 
 ### 5.2 Escritura autenticada
 
-| Método | Ruta |
-| --- | --- |
-| `POST` | `/v1/auth/login` |
-| `GET` · `PUT` | `/v1/admin/profile` |
-| `GET` · `POST` | `/v1/admin/projects` |
-| `GET` · `PUT` · `DELETE` | `/v1/admin/projects/:id` |
-| `PATCH` | `/v1/admin/projects/reorder` |
-| — | mismo juego para `/v1/admin/experience` y `/v1/admin/skills` (con items anidados) |
-| `GET` · `POST` | `/v1/admin/users` — solo `admin` |
-| `PATCH` · `DELETE` | `/v1/admin/users/:id` — solo `admin` |
-| `PATCH` | `/v1/admin/users/:id/password` — solo `admin` |
+| Método                   | Ruta                                                                              |
+| ------------------------ | --------------------------------------------------------------------------------- |
+| `POST`                   | `/v1/auth/login`                                                                  |
+| `GET` · `PUT`            | `/v1/admin/profile`                                                               |
+| `GET` · `POST`           | `/v1/admin/projects`                                                              |
+| `GET` · `PUT` · `DELETE` | `/v1/admin/projects/:id`                                                          |
+| `PATCH`                  | `/v1/admin/projects/reorder`                                                      |
+| —                        | mismo juego para `/v1/admin/experience` y `/v1/admin/skills` (con items anidados) |
+| `GET` · `POST`           | `/v1/admin/users` — solo `admin`                                                  |
+| `PATCH` · `DELETE`       | `/v1/admin/users/:id` — solo `admin`                                              |
+| `PATCH`                  | `/v1/admin/users/:id/password` — solo `admin`                                     |
 
 Los `GET` de `/admin` devuelven el objeto bilingüe completo y no aceptan `locale`.
 `reorder` recibe la lista de ids en el orden deseado y reasigna `position` en una
@@ -342,11 +342,11 @@ antes de las paramétricas.
 
 ### 5.3 Operación
 
-| Ruta | Notas |
-| --- | --- |
-| `GET /health` | **No toca la base de datos.** Responde `200` si el proceso vive |
-| `GET /health/db` | Verifica la conexión con un `SELECT 1` |
-| `GET /docs` | Swagger UI, detrás de autenticación |
+| Ruta             | Notas                                                           |
+| ---------------- | --------------------------------------------------------------- |
+| `GET /health`    | **No toca la base de datos.** Responde `200` si el proceso vive |
+| `GET /health/db` | Verifica la conexión con un `SELECT 1`                          |
+| `GET /docs`      | Swagger UI, detrás de autenticación                             |
 
 La separación de los dos health checks no es cosmética: `/health` es el que golpea
 el keepalive cada 12 minutos, y si consultara la base de datos mantendría la
@@ -364,14 +364,14 @@ diario que sí necesita despertar la base de datos (§7.3).
 Dos roles, y el reparto está en una sola frase: **el `editor` escribe contenido, el
 `admin` además borra y administra usuarios.**
 
-| Acción | anónimo | `editor` | `admin` |
-| --- | --- | --- | --- |
-| `GET /v1/*` públicos (texto resuelto) | ✔ | ✔ | ✔ |
-| `GET /v1/admin/*` (objeto bilingüe) | ✘ | ✔ | ✔ |
-| `POST`, `PUT` de contenido | ✘ | ✔ | ✔ |
-| `PATCH .../reorder` | ✘ | ✔ | ✔ |
-| `DELETE` de contenido | ✘ | ✘ | ✔ |
-| `/v1/admin/users/*` | ✘ | ✘ | ✔ |
+| Acción                                | anónimo | `editor` | `admin` |
+| ------------------------------------- | ------- | -------- | ------- |
+| `GET /v1/*` públicos (texto resuelto) | ✔       | ✔        | ✔       |
+| `GET /v1/admin/*` (objeto bilingüe)   | ✘       | ✔        | ✔       |
+| `POST`, `PUT` de contenido            | ✘       | ✔        | ✔       |
+| `PATCH .../reorder`                   | ✘       | ✔        | ✔       |
+| `DELETE` de contenido                 | ✘       | ✘        | ✔       |
+| `/v1/admin/users/*`                   | ✘       | ✘        | ✔       |
 
 Por qué `DELETE` queda solo en `admin`: crear y editar son reversibles —se corrige
 el texto y ya—, pero borrar un proyecto destruye contenido bilingüe que costó
@@ -430,12 +430,13 @@ convertiría cada llamada autenticada en una consulta extra y rompería el senti
 un token sin estado. Con dos usuarios de confianza y un `editor` que no puede
 borrar, el riesgo es aceptable. Si algún día hace falta cortar el acceso ya, rotar
 `JWT_SECRET` invalida todos los tokens al instante, gratis y sin código nuevo.
+
 - `/docs` no usa ese guard, usa **basic auth** (`express-basic-auth`) con las
   mismas credenciales del administrador. La razón es práctica: un guard de JWT
   espera una cabecera `Authorization: Bearer` que el navegador no envía al abrir
   una URL, así que Swagger UI quedaría inalcanzable justo cuando es el panel de
   administración provisional. Con basic auth el navegador pide usuario y
-  contraseña, y una vez dentro el botón *Authorize* de Swagger sirve para pegar el
+  contraseña, y una vez dentro el botón _Authorize_ de Swagger sirve para pegar el
   JWT y ejecutar las escrituras.
 - `@nestjs/throttler` en el login: 5 intentos por minuto por IP. En Render el
   contenedor es persistente y de una sola instancia, así que el contador en
@@ -450,16 +451,16 @@ borrar, el riesgo es aceptable. Si algún día hace falta cortar el acceso ya, r
 Los casos de uso nunca lanzan excepciones HTTP: lanzan errores de dominio. Un
 único `DomainErrorFilter` los traduce.
 
-| Error de dominio | HTTP | Cuándo |
-| --- | --- | --- |
-| `NotFoundError` | 404 | id que no existe |
-| `DuplicateSlugError` | 409 | crear un proyecto con un id ya usado |
-| `InvalidContentError` | 422 | violación de invariante del dominio (p. ej. `Localized` incompleto) |
-| `UnauthorizedError` | 401 | credenciales o token inválidos, o usuario desactivado |
-| `ForbiddenActionError` | 403 | rol insuficiente (un `editor` intentando borrar) |
-| `EmailAlreadyUsedError` | 409 | crear un usuario con un correo ya registrado |
-| `LastAdminError` | 409 | borrar, degradar o desactivar al último `admin` activo |
-| fallo de DTO | 400 | lo produce el `ValidationPipe`, antes de llegar al caso de uso |
+| Error de dominio        | HTTP | Cuándo                                                              |
+| ----------------------- | ---- | ------------------------------------------------------------------- |
+| `NotFoundError`         | 404  | id que no existe                                                    |
+| `DuplicateSlugError`    | 409  | crear un proyecto con un id ya usado                                |
+| `InvalidContentError`   | 422  | violación de invariante del dominio (p. ej. `Localized` incompleto) |
+| `UnauthorizedError`     | 401  | credenciales o token inválidos, o usuario desactivado               |
+| `ForbiddenActionError`  | 403  | rol insuficiente (un `editor` intentando borrar)                    |
+| `EmailAlreadyUsedError` | 409  | crear un usuario con un correo ya registrado                        |
+| `LastAdminError`        | 409  | borrar, degradar o desactivar al último `admin` activo              |
+| fallo de DTO            | 400  | lo produce el `ValidationPipe`, antes de llegar al caso de uso      |
 
 La distinción entre 400 y 422 es intencional y sale de §3.4: **400 es "tu petición
 está mal formada"** (la detecta el DTO) y **422 es "tu petición es válida pero el
@@ -476,11 +477,11 @@ reaccionar sin parsear mensajes en español.
 
 Todo gratis, sin tarjeta, verificado a agosto de 2026.
 
-| Pieza | Servicio | Plan | Tarjeta |
-| --- | --- | --- | --- |
-| API | Render — web service | Free, 750 h/mes | No |
-| Base de datos | Supabase Postgres | Free, 500 MB, permanente | No |
-| Keepalive y CI | GitHub Actions | Free | No |
+| Pieza          | Servicio             | Plan                     | Tarjeta |
+| -------------- | -------------------- | ------------------------ | ------- |
+| API            | Render — web service | Free, 750 h/mes          | No      |
+| Base de datos  | Supabase Postgres    | Free, 500 MB, permanente | No      |
+| Keepalive y CI | GitHub Actions       | Free                     | No      |
 
 ### 7.1 Por qué esta combinación
 
@@ -508,7 +509,7 @@ dependencies, la otra corre solo con las de producción, como usuario no root.
 Escucha en el `PORT` que inyecta Render.
 
 Las migraciones corren en un entrypoint, antes de arrancar Nest. Render no ofrece
-*pre-deploy command* en el plan free, y de todos modos con una sola instancia no
+_pre-deploy command_ en el plan free, y de todos modos con una sola instancia no
 hay carrera posible entre migraciones concurrentes.
 
 Conexión a Supabase por el **pooler** (puerto 6543, `pgbouncer=true`), con
@@ -519,10 +520,10 @@ un `max` alto no las agote.
 
 Dos cron de GitHub Actions:
 
-| Cron | Golpea | Para qué |
-| --- | --- | --- |
-| cada 12 min | `/health` | evita el sleep de Render y su arranque en frío de 30-60 s |
-| diario | `/health/db` | evita que Supabase pause el proyecto por 7 días de inactividad |
+| Cron        | Golpea       | Para qué                                                       |
+| ----------- | ------------ | -------------------------------------------------------------- |
+| cada 12 min | `/health`    | evita el sleep de Render y su arranque en frío de 30-60 s      |
+| diario      | `/health/db` | evita que Supabase pause el proyecto por 7 días de inactividad |
 
 El segundo es fácil de olvidar y su ausencia es una caída silenciosa: el keepalive
 de `/health` **no toca la base de datos** (§5.3), así que mantendría la API viva
@@ -541,14 +542,14 @@ molesta: cron-job.org.
 
 ### 7.4 Variables de entorno
 
-| Variable | Para qué |
-| --- | --- |
-| `DATABASE_URL` | Postgres de Supabase, cadena del pooler |
-| `JWT_SECRET` | firma de tokens |
+| Variable                             | Para qué                                                         |
+| ------------------------------------ | ---------------------------------------------------------------- |
+| `DATABASE_URL`                       | Postgres de Supabase, cadena del pooler                          |
+| `JWT_SECRET`                         | firma de tokens                                                  |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH` | bootstrap del primer `admin` (§6.1); se ignoran si ya existe uno |
-| `CORS_ORIGINS` | orígenes permitidos, separados por coma |
-| `PORT` | lo inyecta Render |
-| `NODE_ENV` | |
+| `CORS_ORIGINS`                       | orígenes permitidos, separados por coma                          |
+| `PORT`                               | lo inyecta Render                                                |
+| `NODE_ENV`                           |                                                                  |
 
 La configuración se valida al arrancar: si falta una variable, el proceso muere
 con un mensaje que la nombra. Un backend que arranca a medias y falla en la
@@ -566,13 +567,13 @@ al 95%, y build del Docker. Render despliega solo cuando `main` avanza.
 Jest, 95% mínimo en ramas, funciones, líneas y sentencias, según la skill del
 proyecto. Un archivo de test por unidad, organizados por capa:
 
-| Capa | Cómo se prueba |
-| --- | --- |
-| `domain/` | puro, sin mocks. Value objects e invariantes: `Localized` incompleto, slug inválido, hex mal formado, proyecto sin enlaces |
-| `application/` | casos de uso con los puertos mockeados. Verifica orquestación y errores de dominio, nunca SQL |
-| `interface/` | controllers con los casos de uso mockeados. Verifica códigos HTTP, forma de la respuesta y el mapeo del filtro de errores |
-| `infrastructure/` | repositorios y mappers contra un Postgres real |
-| e2e | Supertest contra la app completa: login, CRUD, y que los `GET` públicos devuelvan exactamente la forma que el front espera |
+| Capa              | Cómo se prueba                                                                                                             |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `domain/`         | puro, sin mocks. Value objects e invariantes: `Localized` incompleto, slug inválido, hex mal formado, proyecto sin enlaces |
+| `application/`    | casos de uso con los puertos mockeados. Verifica orquestación y errores de dominio, nunca SQL                              |
+| `interface/`      | controllers con los casos de uso mockeados. Verifica códigos HTTP, forma de la respuesta y el mapeo del filtro de errores  |
+| `infrastructure/` | repositorios y mappers contra un Postgres real                                                                             |
+| e2e               | Supertest contra la app completa: login, CRUD, y que los `GET` públicos devuelvan exactamente la forma que el front espera |
 
 Los tests de infraestructura y los e2e corren contra un Postgres real —un
 `services: postgres` de GitHub Actions en CI, docker compose en local— y no
@@ -595,13 +596,13 @@ enterara hasta el día de conectar.
 
 ## 9. Riesgos
 
-| Riesgo | Mitigación |
-| --- | --- |
-| El keepalive falla y la primera visita paga 30-60 s | Cuando el front se conecte, consumirá la API con ISR y *fallback* al contenido local, así que un backend dormido degrada, no rompe |
-| Supabase pausa el proyecto a los 7 días | Cron diario a `/health/db` (§7.3) |
-| Los free tiers cambian de reglas | Nada del diseño es específico de Render: es un contenedor Docker con `DATABASE_URL`. Migrar es cambiar de host, no reescribir |
-| `icon_catalog` se desincroniza del front | `pnpm seed:icons` al agregar iconos; sin eso, la FK rechaza el icono nuevo — falla ruidoso, no silencioso |
-| El front y la API divergen en las formas | El test de contrato de §8 |
+| Riesgo                                              | Mitigación                                                                                                                         |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| El keepalive falla y la primera visita paga 30-60 s | Cuando el front se conecte, consumirá la API con ISR y _fallback_ al contenido local, así que un backend dormido degrada, no rompe |
+| Supabase pausa el proyecto a los 7 días             | Cron diario a `/health/db` (§7.3)                                                                                                  |
+| Los free tiers cambian de reglas                    | Nada del diseño es específico de Render: es un contenedor Docker con `DATABASE_URL`. Migrar es cambiar de host, no reescribir      |
+| `icon_catalog` se desincroniza del front            | `pnpm seed:icons` al agregar iconos; sin eso, la FK rechaza el icono nuevo — falla ruidoso, no silencioso                          |
+| El front y la API divergen en las formas            | El test de contrato de §8                                                                                                          |
 
 ---
 
@@ -626,9 +627,9 @@ enterara hasta el día de conectar.
 
 ## 11. Fases siguientes
 
-| Fase | Qué |
-| --- | --- |
-| 2 | Panel admin en Next.js 16 + Tailwind 4, en Vercel Hobby. Edición bilingüe lado a lado |
-| 3 | Mensajes de contacto: persistencia, rate limit, envío por Resend, bandeja |
-| 4 | Métricas propias: visitas, vistas por proyecto, clics en demo y GitHub |
-| 5 | Conectar el front: reescribir `src/content/index.ts` contra la API, con ISR y *fallback* |
+| Fase | Qué                                                                                      |
+| ---- | ---------------------------------------------------------------------------------------- |
+| 2    | Panel admin en Next.js 16 + Tailwind 4, en Vercel Hobby. Edición bilingüe lado a lado    |
+| 3    | Mensajes de contacto: persistencia, rate limit, envío por Resend, bandeja                |
+| 4    | Métricas propias: visitas, vistas por proyecto, clics en demo y GitHub                   |
+| 5    | Conectar el front: reescribir `src/content/index.ts` contra la API, con ISR y _fallback_ |
