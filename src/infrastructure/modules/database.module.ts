@@ -1,9 +1,47 @@
 import { Module } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import type { Env } from '@/infrastructure/config/env.schema'
 import { DATABASE_PROBE } from '@/domain/ports/i-database.probe'
+import {
+  EXPERIENCE_REPOSITORY,
+  PROFILE_REPOSITORY,
+  PROJECT_REPOSITORY,
+  SKILL_CATEGORY_REPOSITORY,
+  USER_REPOSITORY,
+} from '@/domain/ports'
+import type { Env } from '@/infrastructure/config/env.schema'
 import { TypeOrmDatabaseProbe } from '@/infrastructure/database/typeorm-database.probe'
+import {
+  ExperienceOrmEntity,
+  IconCatalogOrmEntity,
+  ProfileOrmEntity,
+  ProjectOrmEntity,
+  SkillCategoryOrmEntity,
+  SkillItemOrmEntity,
+  UserOrmEntity,
+} from '@/infrastructure/database/orm'
+import {
+  TypeOrmExperienceRepository,
+  TypeOrmProfileRepository,
+  TypeOrmProjectRepository,
+  TypeOrmSkillCategoryRepository,
+  TypeOrmUserRepository,
+} from '@/infrastructure/database/repos'
+
+/*
+ * Los repositorios se registran contra los TOKENS de los puertos del dominio,
+ * no contra sus clases. Es lo que permite que un caso de uso pida
+ * `@Inject(PROJECT_REPOSITORY)` sin conocer TypeORM, y que en un test se le pase
+ * otra implementacion sin tocar el caso de uso.
+ */
+const REPOSITORIES = [
+  { provide: PROJECT_REPOSITORY, useClass: TypeOrmProjectRepository },
+  { provide: EXPERIENCE_REPOSITORY, useClass: TypeOrmExperienceRepository },
+  { provide: SKILL_CATEGORY_REPOSITORY, useClass: TypeOrmSkillCategoryRepository },
+  { provide: PROFILE_REPOSITORY, useClass: TypeOrmProfileRepository },
+  { provide: USER_REPOSITORY, useClass: TypeOrmUserRepository },
+  { provide: DATABASE_PROBE, useClass: TypeOrmDatabaseProbe },
+]
 
 @Module({
   imports: [
@@ -13,13 +51,22 @@ import { TypeOrmDatabaseProbe } from '@/infrastructure/database/typeorm-database
         type: 'postgres' as const,
         url: config.get('DATABASE_URL', { infer: true }),
 
+        entities: [
+          ProfileOrmEntity,
+          ProjectOrmEntity,
+          ExperienceOrmEntity,
+          IconCatalogOrmEntity,
+          SkillCategoryOrmEntity,
+          SkillItemOrmEntity,
+          UserOrmEntity,
+        ],
+
         /*
          * `synchronize` en false SIEMPRE, en todos los entornos. En desarrollo
          * parece comodo, pero acostumbra al equipo a que el esquema aparezca
          * solo, y el dia del primer deploy no hay ninguna migracion escrita.
          */
         synchronize: false,
-        autoLoadEntities: true,
 
         /*
          * El pooler de Supabase (puerto 6543) limita las conexiones, y varias
@@ -28,13 +75,12 @@ import { TypeOrmDatabaseProbe } from '@/infrastructure/database/typeorm-database
          */
         extra: { max: 5 },
 
-        // Los proveedores gestionados exigen TLS y presentan certificados que
-        // la cadena de confianza local no reconoce.
+        // Los proveedores gestionados exigen TLS.
         ssl: config.get('NODE_ENV', { infer: true }) === 'production',
       }),
     }),
   ],
-  providers: [{ provide: DATABASE_PROBE, useClass: TypeOrmDatabaseProbe }],
-  exports: [DATABASE_PROBE],
+  providers: REPOSITORIES,
+  exports: REPOSITORIES.map((repository) => repository.provide),
 })
 export class DatabaseModule {}

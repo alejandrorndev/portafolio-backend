@@ -66,6 +66,19 @@ const config: Config = {
   coverageThreshold: {
     global: { branches: 95, functions: 95, lines: 95, statements: 95 },
   },
+
+  /*
+   * Los repositorios de TypeORM quedan fuera de esta puerta, y no por comodidad:
+   * lo unico que tienen es SQL, y probarlos con un DataSource mockeado seria
+   * afirmar que la consulta que se escribio es la que se escribio. Su garantia
+   * son los tests de `test/repositories.e2e-spec.ts`, que corren contra un
+   * Postgres real. `pnpm test:cov` los ignora via --coveragePathIgnorePatterns;
+   * CI corre las dos suites.
+   *
+   * No se intenta sumar la cobertura de los dos proyectos de Jest en una sola
+   * corrida: cada proyecto instrumenta los archivos por separado y el total
+   * cuenta cada archivo dos veces, con lo que el numero deja de significar nada.
+   */
 }
 
 export default config
