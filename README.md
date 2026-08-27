@@ -46,17 +46,26 @@ panel de administración provisional y tiene que ir detrás de basic auth (Etapa
 
 ## Comandos
 
-| Comando          | Qué hace                                     |
-| ---------------- | -------------------------------------------- |
-| `pnpm start:dev` | Servidor en modo watch                       |
-| `pnpm build`     | Compila a `dist/`                            |
-| `pnpm verify`    | Tipos + lint + formato + tests con cobertura |
-| `pnpm test`      | Tests unitarios                              |
-| `pnpm test:e2e`  | Tests end to end (requieren Postgres arriba) |
-| `pnpm db:up`     | Levanta Postgres                             |
-| `pnpm db:down`   | Lo baja                                      |
+| Comando                 | Qué hace                                     |
+| ----------------------- | -------------------------------------------- |
+| `pnpm start:dev`        | Servidor en modo watch                       |
+| `pnpm build`            | Compila a `dist/`                            |
+| `pnpm verify`           | Tipos + lint + formato + tests con cobertura |
+| `pnpm test`             | Tests unitarios                              |
+| `pnpm test:e2e`         | Tests end to end (requieren Postgres arriba) |
+| `pnpm db:up`            | Levanta Postgres                             |
+| `pnpm db:down`          | Lo baja                                      |
+| `pnpm migration:run`    | Aplica las migraciones pendientes            |
+| `pnpm migration:revert` | Revierte la última                           |
+| `pnpm migration:show`   | Qué migraciones hay y cuáles corrieron       |
 
 `pnpm verify` es exactamente lo que corre CI. Si pasa en local, pasa allá.
+
+**La cobertura al 95% se mide sobre los tests unitarios**, que no tocan la base de
+datos. Los repositorios de TypeORM quedan fuera de esa puerta a propósito: lo único
+que tienen es SQL, y probarlos con un `DataSource` mockeado sería afirmar que la
+consulta que se escribió es la que se escribió. Su garantía son los tests de
+`pnpm test:e2e`, que corren contra un Postgres real — CI corre las dos suites.
 
 ## Arquitectura
 
@@ -110,8 +119,8 @@ peor que uno que no arranca.
 | ----- | ---------------------------- | ------ |
 | 0     | Andamiaje                    | ✅     |
 | 1     | Dominio                      | ✅     |
-| 2     | Persistencia                 | ⬜     |
-| 3     | Casos de uso de contenido    | ⬜     |
+| 2     | Persistencia                 | ✅     |
+| 3     | Casos de uso de contenido    | ✅     |
 | 4     | Auth, roles y usuarios       | ⬜     |
 | 5     | Capa HTTP                    | ⬜     |
 | 6     | Seed y contrato con el front | ⬜     |

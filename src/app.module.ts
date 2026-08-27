@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { validateEnv } from '@/infrastructure/config/env.schema'
+import { ContentModule } from '@/infrastructure/modules/content.module'
 import { HealthModule } from '@/infrastructure/modules/health.module'
 
 /**
@@ -14,6 +15,7 @@ import { HealthModule } from '@/infrastructure/modules/health.module'
       validate: validateEnv,
     }),
     HealthModule,
+    ContentModule,
   ],
 })
 export class AppModule {}
