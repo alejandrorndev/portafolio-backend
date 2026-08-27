@@ -7,7 +7,13 @@ import {
   TypeOrmSkillCategoryRepository,
   TypeOrmUserRepository,
 } from '@/infrastructure/database/repos'
-import { createTestDataSource, resetSchema, seedIcons, truncateAll } from './helpers/database'
+import {
+  createTestDataSource,
+  ensureTestDatabase,
+  resetSchema,
+  seedIcons,
+  truncateAll,
+} from './helpers/database'
 
 const project = (id: string, position: number): Project =>
   Project.create({
@@ -55,6 +61,7 @@ describe('repositorios de TypeORM contra Postgres', () => {
   let dataSource: DataSource
 
   beforeAll(async () => {
+    await ensureTestDatabase()
     dataSource = createTestDataSource()
     await dataSource.initialize()
     await resetSchema(dataSource)

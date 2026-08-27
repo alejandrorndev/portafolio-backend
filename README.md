@@ -18,15 +18,16 @@ NestJS 11 · TypeScript strict · TypeORM + PostgreSQL 17 · Jest
 
 - Node.js >= 22
 - pnpm 11
-- Docker (para el Postgres de desarrollo)
+- PostgreSQL 16 accesible (una instancia local propia, o el `docker-compose.yml`
+  de este repositorio)
 
 ## Arrancar
 
 ```bash
 pnpm install
-cp .env.example .env
-pnpm db:up        # Postgres en localhost:5432
-pnpm start:dev    # API en localhost:3001
+cp .env.example .env          # y ajustar las variables DB_* a tu Postgres
+pnpm migration:run            # crea el esquema
+pnpm start:dev                # API en localhost:3001
 ```
 
 Con el servidor arriba:
@@ -106,12 +107,33 @@ Copiar `.env.example` a `.env`. Si falta una obligatoria, el proceso **no arranc
 y dice cuál — un backend que arranca a medias y falla en la primera petición es
 peor que uno que no arranca.
 
-| Variable       | Obligatoria | Para qué                                              |
-| -------------- | ----------- | ----------------------------------------------------- |
-| `DATABASE_URL` | Sí          | Postgres. En producción, la cadena del pooler         |
-| `NODE_ENV`     | No          | `development` por defecto                             |
-| `PORT`         | No          | 3001 en local, para no chocar con el front en el 3000 |
-| `CORS_ORIGINS` | No          | Orígenes permitidos. Vacío significa **ninguno**      |
+| Variable                | Obligatoria | Para qué                                              |
+| ----------------------- | ----------- | ----------------------------------------------------- |
+| `DB_HOST`               | Sí          | Host de Postgres                                      |
+| `DB_PORT`               | No          | 5432 por defecto                                      |
+| `DB_USERNAME`           | Sí          | Usuario                                               |
+| `DB_PASSWORD`           | Sí          | Contraseña                                            |
+| `DB_DATABASE_NAME`      | Sí          | Base de datos de la aplicación                        |
+| `DB_DATABASE_NAME_TEST` | No          | Base de los tests. `portafolio_test` por defecto      |
+| `NODE_ENV`              | No          | `development` por defecto                             |
+| `PORT`                  | No          | 3001 en local, para no chocar con el front en el 3000 |
+| `CORS_ORIGINS`          | No          | Orígenes permitidos. Vacío significa **ninguno**      |
+
+En variables separadas y no en una sola URL de conexión: es lo que ya hay
+declarado en el entorno de desarrollo, y una URL obliga a escapar la contraseña
+cuando lleva caracteres especiales — un fallo que se manifiesta como
+`authentication failed` sin decir por qué.
+
+### La base de datos de los tests es OTRA, y es obligatorio que lo sea
+
+`pnpm test:e2e` ejecuta `DROP SCHEMA public CASCADE` antes de correr, porque
+prueba el esquema que produce la migración real. Una instancia de Postgres de una
+máquina de trabajo suele alojar decenas de bases, así que apuntar los tests a la
+equivocada no sería un test que falla: sería una base de datos perdida.
+
+Por eso `DB_DATABASE_NAME_TEST` **tiene que terminar en `_test`** y ser distinta
+de `DB_DATABASE_NAME`; si no, los tests se niegan a arrancar. La base la crean
+ellos mismos si no existe.
 
 ## Estado
 

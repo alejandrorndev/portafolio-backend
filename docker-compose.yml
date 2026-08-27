@@ -1,11 +1,16 @@
-# Postgres para desarrollo y para los tests de integracion.
+# Postgres OPCIONAL, para quien no tenga ya uno local.
 #
-# La version mayor se fija a proposito: en produccion manda el proveedor
-# gestionado, y descubrir una diferencia de comportamiento entre mayores el dia
-# del deploy es justo lo que este archivo evita.
+# El entorno de desarrollo de este proyecto apunta a una instancia propia en el
+# puerto 5440 (ver .env.example). Este contenedor es la alternativa para una
+# maquina nueva: si se usa, hay que ajustar DB_PORT, DB_USERNAME y DB_PASSWORD en
+# el .env a los valores de abajo.
+#
+# La version 16 no es casual: es la misma de la instancia de desarrollo, para que
+# nadie descubra una diferencia de comportamiento entre mayores el dia del
+# deploy.
 services:
   postgres:
-    image: postgres:17-alpine
+    image: postgres:16-alpine
     container_name: portafolio-postgres
     restart: unless-stopped
     environment:

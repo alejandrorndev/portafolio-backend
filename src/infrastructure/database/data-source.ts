@@ -27,10 +27,14 @@ import { UserOrmEntity } from './orm/user.orm-entity'
  * explicita. Una migracion que arranca sin saber a que base apunta es peor que
  * una que no arranca.
  */
-const url = process.env['DATABASE_URL']
+function required(name: string): string {
+  const value = process.env[name]
 
-if (url === undefined || url === '') {
-  throw new Error('Falta DATABASE_URL: la CLI de TypeORM no sabe a que base conectarse')
+  if (value === undefined || value === '') {
+    throw new Error(`Falta ${name}: la CLI de TypeORM no sabe a que base conectarse`)
+  }
+
+  return value
 }
 
 /*
@@ -39,7 +43,11 @@ if (url === undefined || url === '') {
  */
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  url,
+  host: required('DB_HOST'),
+  port: Number(process.env['DB_PORT'] ?? 5432),
+  username: required('DB_USERNAME'),
+  password: required('DB_PASSWORD'),
+  database: required('DB_DATABASE_NAME'),
   entities: [
     ProfileOrmEntity,
     ProjectOrmEntity,

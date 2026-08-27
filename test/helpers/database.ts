@@ -19,17 +19,63 @@ import {
  * justo las partes que este proyecto apoya en la base de datos —los CHECK y el
  * reordenamiento diferido— son las que SQLite no sabe hacer.
  *
- * Los tests corren contra el contenedor de `pnpm db:up` en local y contra el
- * `services: postgres` de GitHub Actions en CI.
+ * Estos tests corren contra una base APARTE (`DB_DATABASE_NAME_TEST`), no contra
+ * la de desarrollo. La razon es que `resetSchema` ejecuta
+ * `DROP SCHEMA public CASCADE`, y la instancia de Postgres de una maquina de
+ * trabajo suele alojar muchas bases: apuntar los tests a la equivocada no seria
+ * un test que falla, seria una base de datos perdida.
  * -----------------------------------------------------------------------------
  */
 
-const DEFAULT_URL = 'postgres://portafolio:portafolio@localhost:5432/portafolio'
+/** Sufijo obligatorio del nombre de la base de pruebas. */
+const REQUIRED_SUFFIX = '_test'
+
+interface TestDatabaseConfig {
+  host: string
+  port: number
+  username: string
+  password: string
+  database: string
+}
+
+function readConfig(): TestDatabaseConfig {
+  const database = process.env['DB_DATABASE_NAME_TEST'] ?? 'portafolio_test'
+
+  /*
+   * El cinturon de seguridad. No es paranoia decorativa: basta un `.env` copiado
+   * de otro proyecto para que estos tests apunten a una base con datos reales, y
+   * lo primero que hacen es borrar el esquema.
+   */
+  if (!database.endsWith(REQUIRED_SUFFIX)) {
+    throw new Error(
+      `DB_DATABASE_NAME_TEST es "${database}" y debe terminar en "${REQUIRED_SUFFIX}". ` +
+        'Los tests de integracion borran el esquema completo, asi que solo corren ' +
+        'contra una base dedicada a pruebas.',
+    )
+  }
+
+  if (database === process.env['DB_DATABASE_NAME']) {
+    throw new Error(
+      'DB_DATABASE_NAME_TEST no puede ser la misma base que DB_DATABASE_NAME: ' +
+        'los tests borrarian los datos de desarrollo.',
+    )
+  }
+
+  return {
+    host: process.env['DB_HOST'] ?? 'localhost',
+    port: Number(process.env['DB_PORT'] ?? 5432),
+    username: process.env['DB_USERNAME'] ?? 'postgres',
+    password: process.env['DB_PASSWORD'] ?? 'postgres',
+    database,
+  }
+}
 
 export function createTestDataSource(): DataSource {
+  const config = readConfig()
+
   return new DataSource({
     type: 'postgres',
-    url: process.env['DATABASE_URL'] ?? DEFAULT_URL,
+    ...config,
     entities: [
       ProfileOrmEntity,
       ProjectOrmEntity,
@@ -42,6 +88,43 @@ export function createTestDataSource(): DataSource {
     migrations: [InitialSchema1755600000000],
     synchronize: false,
   })
+}
+
+/**
+ * Crea la base de pruebas si no existe.
+ *
+ * Se conecta a `postgres` para poder ejecutar CREATE DATABASE, que no se puede
+ * correr desde dentro de la base que se esta creando. Asi `pnpm test:e2e`
+ * funciona en una maquina nueva y en CI sin un paso manual previo.
+ */
+export async function ensureTestDatabase(): Promise<void> {
+  const config = readConfig()
+  const admin = new DataSource({
+    type: 'postgres',
+    host: config.host,
+    port: config.port,
+    username: config.username,
+    password: config.password,
+    database: 'postgres',
+  })
+
+  await admin.initialize()
+
+  try {
+    const existing = await admin.query<{ datname: string }[]>(
+      'SELECT datname FROM pg_database WHERE datname = $1',
+      [config.database],
+    )
+
+    if (existing.length === 0) {
+      // El nombre no puede ir parametrizado en un CREATE DATABASE; ya se
+      // valido que termina en `_test` y viene de una variable de entorno, no de
+      // una peticion.
+      await admin.query(`CREATE DATABASE "${config.database}"`)
+    }
+  } finally {
+    await admin.destroy()
+  }
 }
 
 /**

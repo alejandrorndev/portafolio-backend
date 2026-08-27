@@ -39,6 +39,9 @@ const config: Config = {
       testMatch: ['<rootDir>/test/**/*.e2e-spec.ts'],
       transform,
       moduleNameMapper,
+      // Los e2e necesitan las credenciales reales de Postgres; los unitarios no
+      // tocan nada externo y arrancan sin entorno a proposito.
+      setupFiles: ['<rootDir>/test/helpers/load-env.ts'],
     },
   ],
 

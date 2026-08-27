@@ -1,5 +1,11 @@
 import type { DataSource } from 'typeorm'
-import { createTestDataSource, resetSchema, seedIcons, truncateAll } from './helpers/database'
+import {
+  createTestDataSource,
+  ensureTestDatabase,
+  resetSchema,
+  seedIcons,
+  truncateAll,
+} from './helpers/database'
 
 /*
  * -----------------------------------------------------------------------------
@@ -52,6 +58,7 @@ describe('restricciones del esquema', () => {
   }
 
   beforeAll(async () => {
+    await ensureTestDatabase()
     dataSource = createTestDataSource()
     await dataSource.initialize()
     await resetSchema(dataSource)

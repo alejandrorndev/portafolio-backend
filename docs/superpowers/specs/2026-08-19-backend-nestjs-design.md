@@ -512,9 +512,15 @@ Las migraciones corren en un entrypoint, antes de arrancar Nest. Render no ofrec
 _pre-deploy command_ en el plan free, y de todos modos con una sola instancia no
 hay carrera posible entre migraciones concurrentes.
 
-Conexión a Supabase por el **pooler** (puerto 6543, `pgbouncer=true`), con
-`max: 5` en el pool. El free tier limita conexiones y el pooler es lo que hace que
-un `max` alto no las agote.
+Conexión a Supabase por el **pooler** (puerto 6543), con `max: 5` en el pool. El
+free tier limita conexiones y el pooler es lo que hace que un `max` alto no las
+agote.
+
+La conexión se configura con variables separadas (`DB_HOST`, `DB_PORT`,
+`DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE_NAME`) y no con una URL: es el formato
+que ya usa el entorno de desarrollo, y una URL obliga a escapar la contraseña
+cuando lleva caracteres especiales — un fallo que se manifiesta como
+`authentication failed` sin decir por qué.
 
 ### 7.3 Mantenerlo despierto
 

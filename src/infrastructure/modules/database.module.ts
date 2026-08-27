@@ -47,37 +47,56 @@ const REPOSITORIES = [
   imports: [
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService<Env, true>) => ({
-        type: 'postgres' as const,
-        url: config.get('DATABASE_URL', { infer: true }),
-
-        entities: [
-          ProfileOrmEntity,
-          ProjectOrmEntity,
-          ExperienceOrmEntity,
-          IconCatalogOrmEntity,
-          SkillCategoryOrmEntity,
-          SkillItemOrmEntity,
-          UserOrmEntity,
-        ],
-
+      useFactory: (config: ConfigService<Env, true>) => {
         /*
-         * `synchronize` en false SIEMPRE, en todos los entornos. En desarrollo
-         * parece comodo, pero acostumbra al equipo a que el esquema aparezca
-         * solo, y el dia del primer deploy no hay ninguna migracion escrita.
+         * Se extraen a variables tipadas antes de armar el objeto: las opciones
+         * de TypeORM declaran `database?: string | Uint8Array` y
+         * `password?: string | (() => string)`, y el tipado contextual arrastra
+         * esas uniones hasta lo que devuelve ConfigService.
          */
-        synchronize: false,
+        const host: string = config.get('DB_HOST', { infer: true })
+        const port: number = config.get('DB_PORT', { infer: true })
+        const username: string = config.get('DB_USERNAME', { infer: true })
+        const password: string = config.get('DB_PASSWORD', { infer: true })
+        const database: string = config.get('DB_DATABASE_NAME', { infer: true })
+        const isProduction = config.get('NODE_ENV', { infer: true }) === 'production'
 
-        /*
-         * El pooler de Supabase (puerto 6543) limita las conexiones, y varias
-         * instancias con pools grandes las agotan. Cinco alcanza de sobra para
-         * un portafolio y deja margen para las migraciones.
-         */
-        extra: { max: 5 },
+        return {
+          type: 'postgres' as const,
+          host,
+          port,
+          username,
+          password,
+          database,
 
-        // Los proveedores gestionados exigen TLS.
-        ssl: config.get('NODE_ENV', { infer: true }) === 'production',
-      }),
+          entities: [
+            ProfileOrmEntity,
+            ProjectOrmEntity,
+            ExperienceOrmEntity,
+            IconCatalogOrmEntity,
+            SkillCategoryOrmEntity,
+            SkillItemOrmEntity,
+            UserOrmEntity,
+          ],
+
+          /*
+           * `synchronize` en false SIEMPRE, en todos los entornos. En desarrollo
+           * parece comodo, pero acostumbra a que el esquema aparezca solo, y el
+           * dia del primer deploy no hay ninguna migracion escrita.
+           */
+          synchronize: false,
+
+          /*
+           * El pooler de Supabase (puerto 6543) limita las conexiones, y varias
+           * instancias con pools grandes las agotan. Cinco alcanza de sobra para
+           * un portafolio y deja margen para las migraciones.
+           */
+          extra: { max: 5 },
+
+          // Los proveedores gestionados exigen TLS.
+          ssl: isProduction,
+        }
+      },
     }),
   ],
   providers: REPOSITORIES,
