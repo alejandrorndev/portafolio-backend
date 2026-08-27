@@ -4,6 +4,8 @@
 **Autor:** Alejandro Restrepo Naranjo
 **Estado:** aprobado el diseño de arquitectura (Sección 3); resto pendiente de revisión
 **Revisión 2:** se añaden dos roles, `admin` y `editor` (§6.1)
+**Revisión 3:** la autorización usa `Actor` y no `User` (§6.1); la conexión a
+Postgres va por variables separadas y no por URL (§7.4)
 
 ---
 
@@ -419,7 +421,14 @@ transporte: también tiene que cumplirse cuando la invoque un script.
 **Autorización en dos niveles**, por la misma razón que la validación de §3.4. El
 guard es la barrera HTTP y devuelve 403 antes de tocar la aplicación; además, los
 casos de uso de borrado reciben el rol del actor y lanzan `ForbiddenActionError`
-si no es `admin`. El guard cubre el tráfico HTTP; el caso de uso cubre las
+si no es `admin`.
+
+**Quien actúa es un `Actor`, no un `User`.** Es una entidad de dominio aparte, con
+la identidad (`id`, `email`, `role`) y los permisos, y sin contraseña ni estado de
+activación. La separación cae de la decisión de arriba: si la autorización no
+consulta la base de datos, el guard sólo tiene el payload del token para construir
+a quien actúa — y armar un `User` con eso obligaría a inventar un hash de
+contraseña. `User.toActor()` hace el puente. El guard cubre el tráfico HTTP; el caso de uso cubre las
 invocaciones desde el seed, desde scripts y desde tests, donde no hay guard que
 proteja nada.
 

@@ -29,8 +29,19 @@ import {
   ReorderSkillItemsUseCase,
 } from './skill-item.use-cases'
 
-const admin = User.create({ email: 'admin@correo.co', passwordHash: '$2b$12$h', role: 'admin' })
-const editor = User.create({ email: 'editor@correo.co', passwordHash: '$2b$12$h', role: 'editor' })
+// Los casos de uso autorizan con un Actor, no con la cuenta completa: para
+// decidir permisos basta la identidad, y asi el guard puede construirlo del
+// payload del token sin consultar la base de datos.
+const admin = User.create({
+  email: 'admin@correo.co',
+  passwordHash: '$2b$12$h',
+  role: 'admin',
+}).toActor()
+const editor = User.create({
+  email: 'editor@correo.co',
+  passwordHash: '$2b$12$h',
+  role: 'editor',
+}).toActor()
 
 // --- Experiencia -------------------------------------------------------------
 

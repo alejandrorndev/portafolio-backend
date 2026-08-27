@@ -135,6 +135,43 @@ Por eso `DB_DATABASE_NAME_TEST` **tiene que terminar en `_test`** y ser distinta
 de `DB_DATABASE_NAME`; si no, los tests se niegan a arrancar. La base la crean
 ellos mismos si no existe.
 
+## Roles
+
+Dos roles, y una sola asimetría entre ellos:
+
+| Acción                   | anónimo | `editor` | `admin` |
+| ------------------------ | ------- | -------- | ------- |
+| Lectura pública          | ✔       | ✔        | ✔       |
+| Crear y editar contenido | ✘       | ✔        | ✔       |
+| Reordenar                | ✘       | ✔        | ✔       |
+| **Borrar** contenido     | ✘       | ✘        | ✔       |
+| Administrar usuarios     | ✘       | ✘        | ✔       |
+
+Crear y editar son reversibles —se corrige el texto y listo—, pero borrar destruye
+contenido bilingüe que costó escribir y no hay historial que lo recupere. Esa es la
+razón de que `DELETE` sea la línea divisoria.
+
+Tres decisiones que conviene conocer antes de tocar esta parte:
+
+- **El `RolesGuard` deniega si la ruta no declara `@Roles(...)`.** Falla cerrado: un
+  guard que permite por omisión convierte un olvido en un endpoint abierto.
+- **Siempre queda al menos un `admin` activo.** Borrarlo, degradarlo o desactivarlo
+  lanza `LastAdminError`. Sin esa regla, un clic deja el sistema inadministrable.
+- **La autorización no consulta la base de datos.** El token lleva `{ sub, email,
+role }` y de ahí sale el `Actor`. La contrapartida: degradar a alguien tarda
+  hasta 8 horas en surtir efecto. Para cortar el acceso al instante, rotar
+  `JWT_SECRET` invalida todos los tokens.
+
+### El primer administrador
+
+Un despliegue nuevo tiene la base vacía, así que no habría con qué autenticarse
+para crear el primer usuario. Al arrancar, si no existe ningún admin activo, se
+crea uno desde `ADMIN_EMAIL` y `ADMIN_PASSWORD_HASH` (`pnpm secrets` los genera).
+
+Es idempotente y **no pisa nada**: con un admin ya existente no hace nada, ni
+siquiera si el hash de la variable cambió. Por eso la contraseña se cambia por API
+y no editando el entorno.
+
 ## Estado
 
 | Etapa | Descripción                  | Estado |
@@ -143,7 +180,7 @@ ellos mismos si no existe.
 | 1     | Dominio                      | ✅     |
 | 2     | Persistencia                 | ✅     |
 | 3     | Casos de uso de contenido    | ✅     |
-| 4     | Auth, roles y usuarios       | ⬜     |
+| 4     | Auth, roles y usuarios       | ✅     |
 | 5     | Capa HTTP                    | ⬜     |
 | 6     | Seed y contrato con el front | ⬜     |
 | 7     | Deploy y operación           | ⬜     |

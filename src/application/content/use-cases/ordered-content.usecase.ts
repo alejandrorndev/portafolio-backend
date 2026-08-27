@@ -1,5 +1,5 @@
 import { DuplicateSlugError, InvalidContentError, NotFoundError } from '@/domain/errors'
-import type { User } from '@/domain/entities'
+import type { Actor } from '@/domain/entities'
 import type { IOrderedRepository } from '@/domain/ports'
 
 /*
@@ -137,8 +137,12 @@ export abstract class DeleteOrderedUseCase<T extends OrderedEntity<T>> {
    * El actor entra como parametro porque el permiso de borrado es una regla de
    * negocio, no del transporte: el guard de HTTP ya devolvio 403, pero este mismo
    * caso de uso puede invocarse desde un script donde no hay ningun guard.
+   *
+   * Recibe un `Actor` y no un `User` porque para autorizar basta la identidad, y
+   * asi el guard puede construirlo del payload del token sin ir a la base de
+   * datos en cada peticion.
    */
-  async execute(id: string, actor: User): Promise<void> {
+  async execute(id: string, actor: Actor): Promise<void> {
     actor.ensureCanDeleteContent(`borrar ${this.resource}`)
 
     const current = await this.repository.findById(id)

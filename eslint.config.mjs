@@ -115,7 +115,22 @@ export default tseslint.config(
     },
   },
 
-  { files: ['**/*.mjs'], ...tseslint.configs.disableTypeChecked },
+  {
+    files: ['**/*.mjs'],
+    ...tseslint.configs.disableTypeChecked,
+    languageOptions: {
+      /*
+       * Se fusiona con lo que trae `disableTypeChecked` en vez de reemplazarlo:
+       * ahi viene `parserOptions: { project: false }`, y sin eso el servicio de
+       * tipos intenta analizar estos archivos, no los encuentra en el tsconfig y
+       * falla con "was not found by the project service".
+       */
+      ...tseslint.configs.disableTypeChecked.languageOptions,
+      // Los .mjs de este repositorio son scripts de Node (configuracion y
+      // utilidades), no codigo de navegador.
+      globals: { process: 'readonly', console: 'readonly' },
+    },
+  },
 
   prettier,
 )

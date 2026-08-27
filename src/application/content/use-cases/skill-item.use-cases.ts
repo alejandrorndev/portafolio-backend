@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
-import type { SkillCategory } from '@/domain/entities'
-import type { User } from '@/domain/entities'
+import type { Actor, SkillCategory } from '@/domain/entities'
 import { NotFoundError } from '@/domain/errors'
 import { SKILL_CATEGORY_REPOSITORY, type ISkillCategoryRepository } from '@/domain/ports'
 
@@ -59,7 +58,7 @@ export class RemoveSkillItemUseCase extends SkillItemUseCase {
    * regla que borrar un proyecto entero, por la misma razon: no hay historial
    * que lo recupere.
    */
-  async execute(categoryId: string, itemId: string, actor: User): Promise<SkillCategory> {
+  async execute(categoryId: string, itemId: string, actor: Actor): Promise<SkillCategory> {
     actor.ensureCanDeleteContent('quitar un skill')
 
     const updated = (await this.load(categoryId)).removeItem(itemId)

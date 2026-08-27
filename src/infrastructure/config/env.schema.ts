@@ -47,6 +47,32 @@ export const envSchema = z.object({
    */
   DB_DATABASE_NAME_TEST: z.string().min(1).default('portafolio_test'),
 
+  /*
+   * --- Autenticacion --------------------------------------------------------
+   */
+
+  /**
+   * Firma de los JWT. Sin valor por defecto, nunca.
+   *
+   * Un secreto con valor por defecto es un secreto publico: cualquiera que lea el
+   * repositorio puede firmar un token de admin. Por eso es obligatorio y por eso
+   * se exige una longitud minima — `pnpm secrets` genera uno.
+   */
+  JWT_SECRET: z.string().min(32, 'Debe tener al menos 32 caracteres (usa: pnpm secrets)'),
+
+  /** Vigencia del token, en segundos. Ocho horas: una jornada de trabajo. */
+  JWT_EXPIRES_IN_SECONDS: z.coerce.number().int().positive().default(28_800),
+
+  /**
+   * Credenciales del PRIMER administrador, solo para el arranque inicial.
+   *
+   * Opcionales a proposito: sin ellas la API de lectura publica funciona igual, y
+   * lo unico inaceptable seria que faltaran en silencio — de ahi el aviso al
+   * arrancar. Se ignoran en cuanto exista un admin en la base de datos.
+   */
+  ADMIN_EMAIL: z.email().optional(),
+  ADMIN_PASSWORD_HASH: z.string().min(1).optional(),
+
   /**
    * Origenes permitidos, separados por coma. Vacio significa "ninguno", no
    * "todos": un CORS abierto por omision es la clase de descuido que nadie
