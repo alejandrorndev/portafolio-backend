@@ -50,6 +50,9 @@ const config: Config = {
     '!src/**/*.module.ts',
     '!src/**/*.dto.ts',
     '!src/**/index.ts',
+    // Configuracion declarativa de Swagger: misma categoria que main.ts y los
+    // modulos. Un test aqui solo afirmaria que la configuracion es la que dice.
+    '!src/interface/http/swagger.ts',
     '!src/infrastructure/database/orm/**',
     // Interfaces mas un token de inyeccion: no hay comportamiento que probar.
     '!src/domain/ports/**',

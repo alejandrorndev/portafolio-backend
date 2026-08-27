@@ -29,6 +29,21 @@ pnpm db:up        # Postgres en localhost:5432
 pnpm start:dev    # API en localhost:3001
 ```
 
+Con el servidor arriba:
+
+| URL                             | Qué es                              |
+| ------------------------------- | ----------------------------------- |
+| http://localhost:3001/docs      | Swagger UI                          |
+| http://localhost:3001/docs-json | El OpenAPI en crudo                 |
+| http://localhost:3001/health    | Chequeo de vida (sin base de datos) |
+| http://localhost:3001/health/db | Chequeo de la base de datos         |
+
+Si el 3001 está ocupado, `PORT=3005 pnpm start:dev`.
+
+**Swagger solo se monta fuera de producción.** En producción esta página es el
+panel de administración provisional y tiene que ir detrás de basic auth (Etapa
+5); hasta que ese candado exista, no se publica.
+
 ## Comandos
 
 | Comando          | Qué hace                                     |

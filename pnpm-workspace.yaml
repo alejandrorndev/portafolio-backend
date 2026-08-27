@@ -1,5 +1,8 @@
-# Dependencia transitiva con script de instalacion. Publica binarios
-# precompilados, asi que no hace falta ejecutarlo: sin esta lista pnpm sale con
-# codigo 1 y tumba el `pnpm install --frozen-lockfile` de CI.
+# Dependencias transitivas con scripts de instalacion. Ninguna necesita
+# ejecutarlos —publican binarios precompilados, o el script es solo telemetria—
+# y sin esta lista pnpm sale con codigo 1 y tumba cualquier comando que verifique
+# el estado de las dependencias, incluido `pnpm build`.
 allowBuilds:
   unrs-resolver: false
+  # Telemetria de instalacion. No hace falta para nada.
+  '@scarf/scarf': false

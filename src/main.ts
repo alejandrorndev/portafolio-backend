@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import type { Env } from '@/infrastructure/config/env.schema'
+import { setupSwagger } from '@/interface/http/swagger'
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bufferLogs: true })
@@ -22,6 +23,18 @@ async function bootstrap(): Promise<void> {
       { path: 'health/db', method: RequestMethod.GET },
     ],
   })
+
+  /*
+   * Swagger solo fuera de produccion, por ahora.
+   *
+   * En produccion esta pagina es el panel de administracion provisional y tiene
+   * que ir detras de basic auth (Etapa 5). Hasta que ese candado exista, no se
+   * monta: publicar el mapa completo de la API de escritura sin proteccion es
+   * peor que no tener documentacion.
+   */
+  if (config.get('NODE_ENV', { infer: true }) !== 'production') {
+    setupSwagger(app)
+  }
 
   const origins = config.get('CORS_ORIGINS', { infer: true })
   if (origins.length > 0) {
