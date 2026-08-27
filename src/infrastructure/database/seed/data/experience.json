@@ -1,0 +1,83 @@
+[
+  {
+    "id": "homepower",
+    "period": {
+      "start": "2025",
+      "end": null
+    },
+    "company": "Homepower Colombia S.A.S",
+    "role": {
+      "es": "Backend Developer Semi Senior",
+      "en": "Semi Senior Backend Developer"
+    },
+    "description": {
+      "es": "Diseño e implementación de APIs REST y GraphQL con NestJS aplicando Arquitectura Hexagonal, DDD y CQRS. Desarrollo de microservicios y soluciones serverless con AWS Lambda. Implementación de seguridad (JWT, OAuth2, RBAC), pruebas con Jest y despliegues en AWS con Docker.",
+      "en": "Design and implementation of REST and GraphQL APIs with NestJS, applying Hexagonal Architecture, DDD and CQRS. Microservices and serverless solutions with AWS Lambda. Security implementation (JWT, OAuth2, RBAC), testing with Jest, and AWS deployments with Docker."
+    },
+    "stack": ["NestJS", "GraphQL", "AWS Lambda", "DDD", "CQRS", "JWT", "PostgreSQL", "Docker"],
+    "accent": "purple"
+  },
+  {
+    "id": "incubant",
+    "period": {
+      "start": "2025",
+      "end": "2025"
+    },
+    "company": "Incubant",
+    "role": {
+      "es": "Full Stack Developer",
+      "en": "Full Stack Developer"
+    },
+    "description": {
+      "es": "APIs REST con Node.js y Express, optimización de consultas MySQL que redujeron tiempos de respuesta un 30%. Frontend con Angular 19+ y Tailwind CSS. Documentación con Swagger, pruebas con Jest y pipelines CI/CD con GitHub Actions.",
+      "en": "REST APIs with Node.js and Express, plus MySQL query optimization that cut response times by 30%. Frontend with Angular 19+ and Tailwind CSS. Swagger documentation, Jest testing and CI/CD pipelines with GitHub Actions."
+    },
+    "stack": [
+      "Node.js",
+      "Angular 19",
+      "MySQL",
+      "Swagger",
+      "Jest",
+      "GitHub Actions",
+      "Tailwind",
+      "RxJS"
+    ],
+    "accent": "cyan"
+  },
+  {
+    "id": "techboss",
+    "period": {
+      "start": "2023",
+      "end": "2024"
+    },
+    "company": "Techboss S.A.S",
+    "role": {
+      "es": "Full Stack Developer",
+      "en": "Full Stack Developer"
+    },
+    "description": {
+      "es": "Desarrollo de APIs REST con PHP y Node.js, integración de MySQL y MongoDB. Interfaces con Vue.js y React.js. Optimización de performance, seguridad de aplicaciones e implementación de arquitecturas escalables.",
+      "en": "REST API development with PHP and Node.js, integrating MySQL and MongoDB. Interfaces with Vue.js and React.js. Performance optimization, application security and scalable architecture implementation."
+    },
+    "stack": ["Node.js", "PHP", "MySQL", "MongoDB", "Vue.js", "React.js"],
+    "accent": "pink"
+  },
+  {
+    "id": "ebfactory",
+    "period": {
+      "start": "2021",
+      "end": "2022"
+    },
+    "company": "Ebfactory S.A.S",
+    "role": {
+      "es": "Software Developer",
+      "en": "Software Developer"
+    },
+    "description": {
+      "es": "Mantenimiento y desarrollo de funcionalidades para proyectos del Inter-American Development Bank. Integración y consumo de APIs REST. Tecnologías: PHP, Drupal, MySQL, Git, Docker con metodología Scrum.",
+      "en": "Maintenance and feature development for Inter-American Development Bank projects. REST API integration and consumption. Stack: PHP, Drupal, MySQL, Git and Docker, working under Scrum."
+    },
+    "stack": ["PHP", "Drupal", "MySQL", "Docker", "Scrum", "Git"],
+    "accent": "gold"
+  }
+]

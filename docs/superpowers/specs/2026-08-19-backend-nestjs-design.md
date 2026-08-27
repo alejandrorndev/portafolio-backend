@@ -4,6 +4,8 @@
 **Autor:** Alejandro Restrepo Naranjo
 **Estado:** aprobado el diseño de arquitectura (Sección 3); resto pendiente de revisión
 **Revisión 2:** se añaden dos roles, `admin` y `editor` (§6.1)
+**Revisión 3:** la autorización usa `Actor` y no `User` (§6.1); la conexión a
+Postgres va por variables separadas y no por URL (§7.4)
 
 ---
 
@@ -419,7 +421,14 @@ transporte: también tiene que cumplirse cuando la invoque un script.
 **Autorización en dos niveles**, por la misma razón que la validación de §3.4. El
 guard es la barrera HTTP y devuelve 403 antes de tocar la aplicación; además, los
 casos de uso de borrado reciben el rol del actor y lanzan `ForbiddenActionError`
-si no es `admin`. El guard cubre el tráfico HTTP; el caso de uso cubre las
+si no es `admin`.
+
+**Quien actúa es un `Actor`, no un `User`.** Es una entidad de dominio aparte, con
+la identidad (`id`, `email`, `role`) y los permisos, y sin contraseña ni estado de
+activación. La separación cae de la decisión de arriba: si la autorización no
+consulta la base de datos, el guard sólo tiene el payload del token para construir
+a quien actúa — y armar un `User` con eso obligaría a inventar un hash de
+contraseña. `User.toActor()` hace el puente. El guard cubre el tráfico HTTP; el caso de uso cubre las
 invocaciones desde el seed, desde scripts y desde tests, donde no hay guard que
 proteja nada.
 
@@ -512,9 +521,15 @@ Las migraciones corren en un entrypoint, antes de arrancar Nest. Render no ofrec
 _pre-deploy command_ en el plan free, y de todos modos con una sola instancia no
 hay carrera posible entre migraciones concurrentes.
 
-Conexión a Supabase por el **pooler** (puerto 6543, `pgbouncer=true`), con
-`max: 5` en el pool. El free tier limita conexiones y el pooler es lo que hace que
-un `max` alto no las agote.
+Conexión a Supabase por el **pooler** (puerto 6543), con `max: 5` en el pool. El
+free tier limita conexiones y el pooler es lo que hace que un `max` alto no las
+agote.
+
+La conexión se configura con variables separadas (`DB_HOST`, `DB_PORT`,
+`DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE_NAME`) y no con una URL: es el formato
+que ya usa el entorno de desarrollo, y una URL obliga a escapar la contraseña
+cuando lleva caracteres especiales — un fallo que se manifiesta como
+`authentication failed` sin decir por qué.
 
 ### 7.3 Mantenerlo despierto
 

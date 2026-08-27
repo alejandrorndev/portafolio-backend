@@ -1,40 +1,141 @@
 import { Module } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import type { Env } from '@/infrastructure/config/env.schema'
 import { DATABASE_PROBE } from '@/domain/ports/i-database.probe'
+import {
+  EXPERIENCE_REPOSITORY,
+  PROFILE_REPOSITORY,
+  PROJECT_REPOSITORY,
+  SKILL_CATEGORY_REPOSITORY,
+  USER_REPOSITORY,
+} from '@/domain/ports'
+import type { Env } from '@/infrastructure/config/env.schema'
 import { TypeOrmDatabaseProbe } from '@/infrastructure/database/typeorm-database.probe'
+import {
+  ExperienceOrmEntity,
+  IconCatalogOrmEntity,
+  ProfileOrmEntity,
+  ProjectOrmEntity,
+  SkillCategoryOrmEntity,
+  SkillItemOrmEntity,
+  UserOrmEntity,
+} from '@/infrastructure/database/orm'
+import {
+  TypeOrmExperienceRepository,
+  TypeOrmProfileRepository,
+  TypeOrmProjectRepository,
+  TypeOrmSkillCategoryRepository,
+  TypeOrmUserRepository,
+} from '@/infrastructure/database/repos'
+
+/*
+ * -----------------------------------------------------------------------------
+ * Que base de datos usa la aplicacion.
+ * -----------------------------------------------------------------------------
+ * Con NODE_ENV=test —que es lo que pone Jest— la aplicacion se conecta SIEMPRE a
+ * la base de pruebas, y se niega a arrancar si su nombre no termina en `_test`.
+ *
+ * Esta decision vive en el codigo de produccion y no en un helper de tests por una
+ * razon aprendida a golpes: un helper que sobrescribe `process.env` no alcanza,
+ * porque `@nestjs/config` lee el archivo `.env` por su cuenta y el valor del
+ * archivo gana. El resultado fue una suite de tests escribiendo en la base de
+ * desarrollo. Aqui no hay orden de carga que pueda saltarse la regla.
+ * -----------------------------------------------------------------------------
+ */
+export function databaseFor(
+  environment: string,
+  configured: string,
+  configuredForTests: string,
+): string {
+  if (environment !== 'test') return configured
+
+  if (!configuredForTests.endsWith('_test')) {
+    throw new Error(
+      `DB_DATABASE_NAME_TEST es "${configuredForTests}" y debe terminar en "_test". ` +
+        'Los tests borran y reescriben contenido: no pueden apuntar a una base de trabajo.',
+    )
+  }
+
+  return configuredForTests
+}
+
+/*
+ * Los repositorios se registran contra los TOKENS de los puertos del dominio,
+ * no contra sus clases. Es lo que permite que un caso de uso pida
+ * `@Inject(PROJECT_REPOSITORY)` sin conocer TypeORM, y que en un test se le pase
+ * otra implementacion sin tocar el caso de uso.
+ */
+const REPOSITORIES = [
+  { provide: PROJECT_REPOSITORY, useClass: TypeOrmProjectRepository },
+  { provide: EXPERIENCE_REPOSITORY, useClass: TypeOrmExperienceRepository },
+  { provide: SKILL_CATEGORY_REPOSITORY, useClass: TypeOrmSkillCategoryRepository },
+  { provide: PROFILE_REPOSITORY, useClass: TypeOrmProfileRepository },
+  { provide: USER_REPOSITORY, useClass: TypeOrmUserRepository },
+  { provide: DATABASE_PROBE, useClass: TypeOrmDatabaseProbe },
+]
 
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService<Env, true>) => ({
-        type: 'postgres' as const,
-        url: config.get('DATABASE_URL', { infer: true }),
-
+      useFactory: (config: ConfigService<Env, true>) => {
         /*
-         * `synchronize` en false SIEMPRE, en todos los entornos. En desarrollo
-         * parece comodo, pero acostumbra al equipo a que el esquema aparezca
-         * solo, y el dia del primer deploy no hay ninguna migracion escrita.
+         * Se extraen a variables tipadas antes de armar el objeto: las opciones
+         * de TypeORM declaran `database?: string | Uint8Array` y
+         * `password?: string | (() => string)`, y el tipado contextual arrastra
+         * esas uniones hasta lo que devuelve ConfigService.
          */
-        synchronize: false,
-        autoLoadEntities: true,
+        const host: string = config.get('DB_HOST', { infer: true })
+        const port: number = config.get('DB_PORT', { infer: true })
+        const username: string = config.get('DB_USERNAME', { infer: true })
+        const password: string = config.get('DB_PASSWORD', { infer: true })
+        const environment = config.get('NODE_ENV', { infer: true })
+        const isProduction = environment === 'production'
+        const database = databaseFor(
+          environment,
+          config.get('DB_DATABASE_NAME', { infer: true }),
+          config.get('DB_DATABASE_NAME_TEST', { infer: true }),
+        )
 
-        /*
-         * El pooler de Supabase (puerto 6543) limita las conexiones, y varias
-         * instancias con pools grandes las agotan. Cinco alcanza de sobra para
-         * un portafolio y deja margen para las migraciones.
-         */
-        extra: { max: 5 },
+        return {
+          type: 'postgres' as const,
+          host,
+          port,
+          username,
+          password,
+          database,
 
-        // Los proveedores gestionados exigen TLS y presentan certificados que
-        // la cadena de confianza local no reconoce.
-        ssl: config.get('NODE_ENV', { infer: true }) === 'production',
-      }),
+          entities: [
+            ProfileOrmEntity,
+            ProjectOrmEntity,
+            ExperienceOrmEntity,
+            IconCatalogOrmEntity,
+            SkillCategoryOrmEntity,
+            SkillItemOrmEntity,
+            UserOrmEntity,
+          ],
+
+          /*
+           * `synchronize` en false SIEMPRE, en todos los entornos. En desarrollo
+           * parece comodo, pero acostumbra a que el esquema aparezca solo, y el
+           * dia del primer deploy no hay ninguna migracion escrita.
+           */
+          synchronize: false,
+
+          /*
+           * El pooler de Supabase (puerto 6543) limita las conexiones, y varias
+           * instancias con pools grandes las agotan. Cinco alcanza de sobra para
+           * un portafolio y deja margen para las migraciones.
+           */
+          extra: { max: 5 },
+
+          // Los proveedores gestionados exigen TLS.
+          ssl: isProduction,
+        }
+      },
     }),
   ],
-  providers: [{ provide: DATABASE_PROBE, useClass: TypeOrmDatabaseProbe }],
-  exports: [DATABASE_PROBE],
+  providers: REPOSITORIES,
+  exports: REPOSITORIES.map((repository) => repository.provide),
 })
 export class DatabaseModule {}

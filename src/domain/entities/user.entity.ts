@@ -1,8 +1,9 @@
 import { randomUUID } from 'node:crypto'
-import { ForbiddenActionError, UnauthorizedError } from '@/domain/errors'
+import { UnauthorizedError } from '@/domain/errors'
 import { Email } from '@/domain/value-objects/email'
 import { parseBoolean, parseText } from '@/domain/value-objects/primitives'
 import { Role } from '@/domain/value-objects/role'
+import { Actor } from './actor.entity'
 
 export interface UserInput {
   id?: unknown
@@ -63,18 +64,15 @@ export class User {
     }
   }
 
-  /** Falla si este usuario no puede borrar contenido. */
-  ensureCanDeleteContent(action: string): void {
-    if (!this.role.canDeleteContent()) {
-      throw new ForbiddenActionError(action)
-    }
-  }
-
-  /** Falla si este usuario no puede administrar usuarios. */
-  ensureCanManageUsers(action: string): void {
-    if (!this.role.canManageUsers()) {
-      throw new ForbiddenActionError(action)
-    }
+  /**
+   * La identidad que se pasa a los casos de uso.
+   *
+   * Los permisos se preguntan al `Actor` y no al `User`: asi la regla vive en un
+   * solo sitio y da igual si quien actua viene de la base de datos o del payload
+   * de un token.
+   */
+  toActor(): Actor {
+    return Actor.of({ id: this.id, email: this.email.value, role: this.role.name })
   }
 
   withRole(role: Role): User {

@@ -1,4 +1,4 @@
-import { ForbiddenActionError, InvalidContentError, UnauthorizedError } from '@/domain/errors'
+import { InvalidContentError, UnauthorizedError } from '@/domain/errors'
 import { Role } from '@/domain/value-objects/role'
 import { User, type PublicUser } from './user.entity'
 
@@ -34,26 +34,20 @@ describe('User', () => {
     )
   })
 
-  describe('permisos', () => {
-    const admin = User.create(input)
-    const editor = User.create({ ...input, role: 'editor' })
+  describe('toActor', () => {
+    it('produce la identidad que los casos de uso usan para autorizar', () => {
+      const actor = User.create({ ...input, id: 'fijo' }).toActor()
 
-    it('un admin puede borrar contenido y administrar usuarios', () => {
-      expect(() => admin.ensureCanDeleteContent('borrar un proyecto')).not.toThrow()
-      expect(() => admin.ensureCanManageUsers('crear un usuario')).not.toThrow()
+      expect(actor.toJSON()).toEqual({ id: 'fijo', email: 'admin@correo.co', role: 'admin' })
     })
 
-    it('un editor no puede borrar contenido', () => {
-      expect(() => editor.ensureCanDeleteContent('borrar un proyecto')).toThrow(
-        ForbiddenActionError,
-      )
-      expect(() => editor.ensureCanDeleteContent('borrar un proyecto')).toThrow(
-        /no permite borrar un proyecto/,
-      )
+    it('el actor conserva los permisos del rol', () => {
+      expect(User.create(input).toActor().isAdmin).toBe(true)
+      expect(User.create({ ...input, role: 'editor' }).toActor().isAdmin).toBe(false)
     })
 
-    it('un editor no puede administrar usuarios', () => {
-      expect(() => editor.ensureCanManageUsers('crear un usuario')).toThrow(ForbiddenActionError)
+    it('no lleva el hash de la contraseña a ninguna parte', () => {
+      expect(JSON.stringify(User.create(input).toActor())).not.toContain('$2b$')
     })
   })
 

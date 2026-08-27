@@ -1,3 +1,4 @@
+export { Actor, type ActorInput } from './actor.entity'
 export {
   ExperienceItem,
   type ExperienceItemInput,

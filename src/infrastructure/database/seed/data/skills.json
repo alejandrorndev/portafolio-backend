@@ -1,0 +1,154 @@
+[
+  {
+    "id": "backend",
+    "title": {
+      "es": "Backend",
+      "en": "Backend"
+    },
+    "accent": "purple",
+    "items": [
+      {
+        "name": "Node.js",
+        "icon": "nodejs-plain"
+      },
+      {
+        "name": "NestJS",
+        "icon": "nestjs-original"
+      },
+      {
+        "name": "Express",
+        "icon": "express-original"
+      },
+      {
+        "name": "Python",
+        "icon": "python-plain"
+      },
+      {
+        "name": "Django",
+        "icon": "django-plain"
+      },
+      {
+        "name": "PHP",
+        "icon": "php-plain"
+      },
+      {
+        "name": "GraphQL",
+        "icon": "graphql-plain"
+      },
+      {
+        "name": "TypeScript",
+        "icon": "typescript-plain"
+      }
+    ]
+  },
+  {
+    "id": "databases",
+    "title": {
+      "es": "Bases de Datos",
+      "en": "Databases"
+    },
+    "accent": "cyan",
+    "items": [
+      {
+        "name": "PostgreSQL",
+        "icon": "postgresql-plain"
+      },
+      {
+        "name": "MySQL",
+        "icon": "mysql-original"
+      },
+      {
+        "name": "MongoDB",
+        "icon": "mongodb-plain"
+      },
+      {
+        "name": "TypeORM",
+        "icon": "typescript-plain"
+      },
+      {
+        "name": "Sequelize",
+        "icon": "sequelize-plain"
+      }
+    ]
+  },
+  {
+    "id": "frontend",
+    "title": {
+      "es": "Frontend",
+      "en": "Frontend"
+    },
+    "accent": "pink",
+    "items": [
+      {
+        "name": "JavaScript",
+        "icon": "javascript-plain"
+      },
+      {
+        "name": "Angular 19",
+        "icon": "angularjs-plain"
+      },
+      {
+        "name": "Vue.js",
+        "icon": "vuejs-plain"
+      },
+      {
+        "name": "React.js",
+        "icon": "react-original"
+      },
+      {
+        "name": "Tailwind",
+        "icon": "tailwindcss-original"
+      },
+      {
+        "name": "HTML5",
+        "icon": "html5-plain"
+      },
+      {
+        "name": "CSS3",
+        "icon": "css3-plain"
+      },
+      {
+        "name": "SASS",
+        "icon": "sass-original"
+      }
+    ]
+  },
+  {
+    "id": "cloud-devops",
+    "title": {
+      "es": "Cloud, DevOps & Testing",
+      "en": "Cloud, DevOps & Testing"
+    },
+    "accent": "gold",
+    "items": [
+      {
+        "name": "AWS",
+        "icon": "amazonwebservices-original-wordmark"
+      },
+      {
+        "name": "Docker",
+        "icon": "docker-plain"
+      },
+      {
+        "name": "Linux",
+        "icon": "linux-plain"
+      },
+      {
+        "name": "Git",
+        "icon": "git-plain"
+      },
+      {
+        "name": "GitHub Actions",
+        "icon": "github-original"
+      },
+      {
+        "name": "Jest",
+        "icon": "jest-plain"
+      },
+      {
+        "name": "Swagger",
+        "icon": "swagger-plain"
+      }
+    ]
+  }
+]

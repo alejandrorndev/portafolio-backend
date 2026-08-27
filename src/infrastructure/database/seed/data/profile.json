@@ -1,0 +1,104 @@
+{
+  "fullName": "Alejandro Stiven Restrepo Naranjo",
+  "displayName": {
+    "first": "Alejandro",
+    "last": "Restrepo"
+  },
+  "brand": "AR.dev",
+  "email": "alejandrorn.dev@gmail.com",
+  "location": {
+    "es": "Medellín, Colombia",
+    "en": "Medellín, Colombia"
+  },
+  "available": true,
+  "headline": {
+    "es": "Desarrollador de Software",
+    "en": "Software Developer"
+  },
+  "role": {
+    "es": "Backend Developer Semi Senior · Full Stack",
+    "en": "Semi Senior Backend Developer · Full Stack"
+  },
+  "summary": {
+    "es": "+4 años construyendo **APIs robustas**, microservicios y soluciones cloud. Arquitectura Hexagonal, DDD, CQRS y serverless con AWS Lambda. Mi filosofía: **#HazQueSuceda**.",
+    "en": "4+ years building **robust APIs**, microservices and cloud solutions. Hexagonal Architecture, DDD, CQRS and serverless with AWS Lambda. My philosophy: **#HazQueSuceda**."
+  },
+  "bio": [
+    {
+      "es": "Soy un desarrollador apasionado por crear sistemas que no solo funcionan, sino que **escalan**. Actualmente en Homepower Colombia, diseño APIs REST y GraphQL con NestJS aplicando Arquitectura Hexagonal, DDD y CQRS.",
+      "en": "I build systems that do more than work — they **scale**. Currently at Homepower Colombia, I design REST and GraphQL APIs with NestJS, applying Hexagonal Architecture, DDD and CQRS."
+    },
+    {
+      "es": "He trabajado con el Banco Interamericano de Desarrollo, implementado CI/CD con GitHub Actions, y optimizado consultas reduciendo tiempos de respuesta un **30%**. Autónomo, disciplinado y siempre enfocado en la mejora continua.",
+      "en": "I've worked with the Inter-American Development Bank, built CI/CD pipelines with GitHub Actions, and optimized queries that cut response times by **30%**. Self-directed, disciplined and focused on continuous improvement."
+    }
+  ],
+  "typewriterRoles": [
+    {
+      "es": "Backend Developer Semi Senior",
+      "en": "Semi Senior Backend Developer"
+    },
+    {
+      "es": "Arquitecto de APIs y Microservicios",
+      "en": "API & Microservices Architect"
+    },
+    {
+      "es": "NestJS · Node.js · Python",
+      "en": "NestJS · Node.js · Python"
+    },
+    {
+      "es": "AWS · Docker · DevOps",
+      "en": "AWS · Docker · DevOps"
+    },
+    {
+      "es": "Arquitectura Hexagonal · DDD",
+      "en": "Hexagonal Architecture · DDD"
+    }
+  ],
+  "socials": [
+    {
+      "id": "github",
+      "label": "GitHub",
+      "href": "https://github.com/alejandrorndev",
+      "icon": "github-original"
+    },
+    {
+      "id": "linkedin",
+      "label": "LinkedIn",
+      "href": "https://www.linkedin.com/in/alejandro-stiven-restrepo-naranjo-2bb429186/",
+      "icon": "linkedin-plain"
+    },
+    {
+      "id": "email",
+      "label": "Email",
+      "href": "mailto:alejandrorn.dev@gmail.com",
+      "icon": null
+    }
+  ],
+  "stats": [
+    {
+      "id": "years-experience",
+      "value": 4,
+      "suffix": "+",
+      "labelKey": "yearsExperience"
+    },
+    {
+      "id": "companies",
+      "value": 4,
+      "suffix": "",
+      "labelKey": "companies"
+    },
+    {
+      "id": "projects",
+      "value": 10,
+      "suffix": "+",
+      "labelKey": "projects"
+    },
+    {
+      "id": "technologies",
+      "value": 15,
+      "suffix": "+",
+      "labelKey": "technologies"
+    }
+  ]
+}
