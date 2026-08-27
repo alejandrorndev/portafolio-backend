@@ -25,15 +25,27 @@ import {
   UpdateProjectUseCase,
   UpdateSkillCategoryUseCase,
 } from '@/application/content/use-cases'
+import {
+  AdminExperienceController,
+  AdminProfileController,
+  AdminProjectsController,
+  AdminSkillsController,
+} from '@/interface/http/controllers/admin/content.admin.controller'
+import {
+  PublicExperienceController,
+  PublicProfileController,
+  PublicProjectsController,
+  PublicSkillsController,
+} from '@/interface/http/controllers/public/content.controller'
+import { AuthModule } from './auth.module'
 import { DatabaseModule } from './database.module'
 
 /*
- * Los casos de uso del contenido.
+ * Los casos de uso del contenido y sus dos caras HTTP.
  *
- * El modulo no tiene controllers todavia: los expone la capa HTTP en la Etapa 5.
- * Registrarlos ya permite que el seed y los tests de integracion los usen, que es
- * como se comprueba que el cableado con los repositorios funciona antes de
- * agregarle HTTP encima.
+ * Los controllers publicos y los de admin viven en el mismo modulo a proposito:
+ * comparten los casos de uso, y separarlos en dos modulos obligaria a registrar
+ * los mismos proveedores dos veces.
  */
 const USE_CASES = [
   ListProjectsUseCase,
@@ -67,7 +79,18 @@ const USE_CASES = [
 ]
 
 @Module({
-  imports: [DatabaseModule],
+  // AuthModule aporta los guards que protegen las rutas de admin.
+  imports: [DatabaseModule, AuthModule],
+  controllers: [
+    PublicProfileController,
+    PublicProjectsController,
+    PublicExperienceController,
+    PublicSkillsController,
+    AdminProfileController,
+    AdminProjectsController,
+    AdminExperienceController,
+    AdminSkillsController,
+  ],
   providers: USE_CASES,
   exports: USE_CASES,
 })

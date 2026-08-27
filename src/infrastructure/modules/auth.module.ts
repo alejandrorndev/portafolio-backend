@@ -28,11 +28,20 @@ import { DatabaseModule } from './database.module'
 
     /*
      * El limitador se declara con NOMBRE y no como limite global: aplicado a todo
-     * dejaria la lectura publica del portafolio en cinco peticiones por minuto.
-     * La ruta de login lo pide explicitamente con @Throttle({ login: ... }), que
-     * llega con su controller en la Etapa 5.
+     * dejaria la lectura publica del portafolio en cinco peticiones por minuto. Lo
+     * pide solo la ruta de login, con @UseGuards(ThrottlerGuard).
      */
-    ThrottlerModule.forRoot([{ name: 'login', ttl: 60_000, limit: 5 }]),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService<Env, true>) => [
+        {
+          name: 'login',
+          ttl: 60_000,
+          limit: config.get('LOGIN_RATE_LIMIT', { infer: true }),
+        },
+      ],
+    }),
   ],
   providers: [
     { provide: HASHER, useClass: BcryptHasher },

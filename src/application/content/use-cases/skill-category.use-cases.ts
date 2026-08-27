@@ -12,6 +12,24 @@ import {
 
 export type CreateSkillCategoryInput = Omit<SkillCategoryInput, 'position'>
 
+/**
+ * Numera los items en el orden en que llegaron.
+ *
+ * El dominio exige `position` en cada skill, pero pedirsela al cliente seria
+ * pedirle que administre un detalle interno: el orden que quiso es el del array
+ * que envio. Sin esto, crear una categoria devolvia 422 aunque el cuerpo fuera
+ * perfectamente valido.
+ */
+function withItemPositions(items: unknown): unknown {
+  if (!Array.isArray(items)) return items
+
+  return (items as unknown[]).map((item, index) =>
+    typeof item === 'object' && item !== null
+      ? { ...(item as Record<string, unknown>), position: index }
+      : item,
+  )
+}
+
 @Injectable()
 export class ListSkillCategoriesUseCase extends ListOrderedUseCase<SkillCategory> {
   constructor(@Inject(SKILL_CATEGORY_REPOSITORY) repository: ISkillCategoryRepository) {
@@ -32,7 +50,9 @@ export class CreateSkillCategoryUseCase extends CreateOrderedUseCase<
   CreateSkillCategoryInput
 > {
   constructor(@Inject(SKILL_CATEGORY_REPOSITORY) repository: ISkillCategoryRepository) {
-    super(repository, 'skill category', (input) => SkillCategory.create(input))
+    super(repository, 'skill category', (input) =>
+      SkillCategory.create({ ...input, items: withItemPositions(input.items) }),
+    )
   }
 }
 

@@ -1,0 +1,132 @@
+[
+  {
+    "id": "api-rest-eventos",
+    "type": {
+      "es": "API REST · Backend",
+      "en": "REST API · Backend"
+    },
+    "title": {
+      "es": "RESTful API — Gestión de Eventos",
+      "en": "RESTful API — Event Management"
+    },
+    "description": {
+      "es": "API con Node.js y Express para gestión de usuarios, eventos y asistentes. Arquitectura limpia, manejo de errores y endpoints documentados.",
+      "en": "Node.js and Express API for managing users, events and attendees. Clean architecture, error handling and documented endpoints."
+    },
+    "tags": ["Node.js", "Express", "JavaScript"],
+    "icon": "⚡",
+    "gradient": ["#8b5cf6", "#06b6d4"],
+    "links": {
+      "github": "https://github.com/alejandrorndev/api-rest-node"
+    }
+  },
+  {
+    "id": "carrito-compras-react",
+    "type": {
+      "es": "Frontend · React",
+      "en": "Frontend · React"
+    },
+    "title": {
+      "es": "Shopping Cart — React",
+      "en": "Shopping Cart — React"
+    },
+    "description": {
+      "es": "Carrito de compras interactivo con gestión de estado en tiempo real, add/remove de productos y cálculo dinámico de totales.",
+      "en": "Interactive shopping cart with real-time state management, add/remove of products and dynamic total calculation."
+    },
+    "tags": ["React.js", "JavaScript"],
+    "icon": "🛒",
+    "gradient": ["#00ff88", "#06b6d4"],
+    "links": {
+      "github": "https://github.com/alejandrorndev/carrito-compras-react"
+    }
+  },
+  {
+    "id": "maqueta-website-coffe",
+    "type": {
+      "es": "Frontend · Mockup",
+      "en": "Frontend · Mockup"
+    },
+    "title": {
+      "es": "Tienda de Café",
+      "en": "Coffee Shop"
+    },
+    "description": {
+      "es": "Sitio web responsivo pixel-perfect de tienda de café, showcase de productos y servicios con HTML y CSS puro.",
+      "en": "Pixel-perfect responsive coffee shop site showcasing products and services, built with plain HTML and CSS."
+    },
+    "tags": ["HTML5", "CSS3"],
+    "icon": "☕",
+    "gradient": ["#8b5cf6", "#f59e0b"],
+    "links": {
+      "demo": "https://alejandrorndev.github.io/maqueta-website-coffe/",
+      "github": "https://github.com/alejandrorndev/maqueta-website-coffe"
+    }
+  },
+  {
+    "id": "carrito-compras-js",
+    "type": {
+      "es": "Frontend · Vanilla JS",
+      "en": "Frontend · Vanilla JS"
+    },
+    "title": {
+      "es": "Shopping Cart — Vanilla JS",
+      "en": "Shopping Cart — Vanilla JS"
+    },
+    "description": {
+      "es": "Carrito con gestión del DOM, eventos y lógica de negocio sin frameworks. Manejo completo del estado con JavaScript puro.",
+      "en": "Cart with DOM handling, events and business logic without frameworks. Full state management in plain JavaScript."
+    },
+    "tags": ["JavaScript", "HTML5", "CSS3"],
+    "icon": "📦",
+    "gradient": ["#ef4444", "#f97316"],
+    "links": {
+      "demo": "https://alejandrorndev.github.io/carrito-compras-js/",
+      "github": "https://github.com/alejandrorndev/carrito-compras-js"
+    }
+  },
+  {
+    "id": "simulador-envio-correo",
+    "type": {
+      "es": "Frontend · JavaScript",
+      "en": "Frontend · JavaScript"
+    },
+    "title": {
+      "es": "Simulador de Envío de Correo",
+      "en": "Email Sending Simulator"
+    },
+    "description": {
+      "es": "Simulador con validaciones en tiempo real en cada input, spinner de carga y feedback visual por estados.",
+      "en": "Simulator with real-time validation on every input, loading spinner and visual feedback per state."
+    },
+    "tags": ["JavaScript", "HTML5", "CSS3"],
+    "icon": "✉️",
+    "gradient": ["#06b6d4", "#3b82f6"],
+    "links": {
+      "demo": "https://alejandrorndev.github.io/simulador-envio-correo/",
+      "github": "https://github.com/alejandrorndev/simulador-envio-correo"
+    }
+  },
+  {
+    "id": "slider-interactivo",
+    "type": {
+      "es": "Frontend · JavaScript",
+      "en": "Frontend · JavaScript"
+    },
+    "title": {
+      "es": "Interactive Slider",
+      "en": "Interactive Slider"
+    },
+    "description": {
+      "es": "Galería interactiva con slider, transiciones suaves y controles dinámicos construidos íntegramente con JavaScript puro.",
+      "en": "Interactive gallery with slider, smooth transitions and dynamic controls built entirely in plain JavaScript."
+    },
+    "tags": ["JavaScript", "CSS3", "HTML5"],
+    "icon": "🎠",
+    "gradient": ["#10b981", "#059669"],
+    "links": {
+      "demo": "https://alejandrorndev.github.io/slider-_animal/",
+      "github": "https://github.com/alejandrorndev/slider-_animal"
+    }
+  }
+]

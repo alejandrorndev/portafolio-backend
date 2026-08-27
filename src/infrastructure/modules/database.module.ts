@@ -29,6 +29,37 @@ import {
 } from '@/infrastructure/database/repos'
 
 /*
+ * -----------------------------------------------------------------------------
+ * Que base de datos usa la aplicacion.
+ * -----------------------------------------------------------------------------
+ * Con NODE_ENV=test —que es lo que pone Jest— la aplicacion se conecta SIEMPRE a
+ * la base de pruebas, y se niega a arrancar si su nombre no termina en `_test`.
+ *
+ * Esta decision vive en el codigo de produccion y no en un helper de tests por una
+ * razon aprendida a golpes: un helper que sobrescribe `process.env` no alcanza,
+ * porque `@nestjs/config` lee el archivo `.env` por su cuenta y el valor del
+ * archivo gana. El resultado fue una suite de tests escribiendo en la base de
+ * desarrollo. Aqui no hay orden de carga que pueda saltarse la regla.
+ * -----------------------------------------------------------------------------
+ */
+export function databaseFor(
+  environment: string,
+  configured: string,
+  configuredForTests: string,
+): string {
+  if (environment !== 'test') return configured
+
+  if (!configuredForTests.endsWith('_test')) {
+    throw new Error(
+      `DB_DATABASE_NAME_TEST es "${configuredForTests}" y debe terminar en "_test". ` +
+        'Los tests borran y reescriben contenido: no pueden apuntar a una base de trabajo.',
+    )
+  }
+
+  return configuredForTests
+}
+
+/*
  * Los repositorios se registran contra los TOKENS de los puertos del dominio,
  * no contra sus clases. Es lo que permite que un caso de uso pida
  * `@Inject(PROJECT_REPOSITORY)` sin conocer TypeORM, y que en un test se le pase
@@ -58,8 +89,13 @@ const REPOSITORIES = [
         const port: number = config.get('DB_PORT', { infer: true })
         const username: string = config.get('DB_USERNAME', { infer: true })
         const password: string = config.get('DB_PASSWORD', { infer: true })
-        const database: string = config.get('DB_DATABASE_NAME', { infer: true })
-        const isProduction = config.get('NODE_ENV', { infer: true }) === 'production'
+        const environment = config.get('NODE_ENV', { infer: true })
+        const isProduction = environment === 'production'
+        const database = databaseFor(
+          environment,
+          config.get('DB_DATABASE_NAME', { infer: true }),
+          config.get('DB_DATABASE_NAME_TEST', { infer: true }),
+        )
 
         return {
           type: 'postgres' as const,

@@ -135,6 +135,66 @@ Por eso `DB_DATABASE_NAME_TEST` **tiene que terminar en `_test`** y ser distinta
 de `DB_DATABASE_NAME`; si no, los tests se niegan a arrancar. La base la crean
 ellos mismos si no existe.
 
+## La API
+
+Prefijo `/v1`. La lectura es pública; escribir exige un token.
+
+| Recurso     | Público                       | Admin                                                                                   |
+| ----------- | ----------------------------- | --------------------------------------------------------------------------------------- |
+| Perfil      | `GET /v1/profile`             | `GET` · `PUT /v1/admin/profile`                                                         |
+| Proyectos   | `GET /v1/projects` · `/:id`   | `GET` · `POST` · `PUT /:id` · `DELETE /:id` · `PATCH /reorder`                          |
+| Experiencia | `GET /v1/experience` · `/:id` | igual que proyectos                                                                     |
+| Skills      | `GET /v1/skills`              | igual, más `POST /:id/items` · `DELETE /:id/items/:itemId` · `PATCH /:id/items/reorder` |
+| Sesión      | —                             | `POST /v1/auth/login` · `GET /v1/auth/me`                                               |
+| Usuarios    | —                             | `GET` · `POST` · `PATCH /:id` · `PUT /:id/password` · `DELETE /:id`                     |
+
+Los `GET` públicos aceptan `?locale=es|en` y devuelven **texto ya resuelto**, con la
+forma exacta que exporta `@/content` en el front — por eso conectarlo será reescribir
+un solo archivo. Los `GET` de `/admin` devuelven el objeto **bilingüe** completo, que
+es lo que necesita quien edita.
+
+Un `locale` que no existe es un **400**, no un idioma por defecto silencioso: si
+alguien pide `fr`, la respuesta correcta es decirle que no existe.
+
+### Los errores tienen una sola forma
+
+```json
+{ "statusCode": 422, "code": "INVALID_CONTENT", "message": "...", "details": ["..."] }
+```
+
+`code` es estable y pensado para que el panel reaccione sin parsear mensajes en
+español. `details` aparece solo cuando hay una lista de problemas concretos, que es
+lo que un formulario necesita para señalar el campo equivocado.
+
+| Código                                                   | Cuándo                                               |
+| -------------------------------------------------------- | ---------------------------------------------------- |
+| 400 `VALIDATION_FAILED`                                  | La petición está mal formada — lo detecta el DTO     |
+| 401 `UNAUTHORIZED`                                       | Sin token, token inválido o credenciales incorrectas |
+| 403 `FORBIDDEN_ACTION`                                   | El rol no alcanza                                    |
+| 404 `<RECURSO>_NOT_FOUND`                                | El id no existe                                      |
+| 409 `DUPLICATE_ID` · `LAST_ADMIN` · `EMAIL_ALREADY_USED` | Conflicto con el estado actual                       |
+| 422 `INVALID_CONTENT`                                    | La petición es válida pero el dominio no la acepta   |
+| 429 `TOO_MANY_REQUESTS`                                  | Demasiados intentos de login                         |
+
+La distinción entre 400 y 422 es deliberada: **400 es "tu petición está mal
+formada"** y **422 es "tu petición es válida pero el dominio no la acepta"**. Un
+consumidor puede distinguir entre corregir la forma y corregir el significado.
+
+## El contenido inicial
+
+```bash
+pnpm import:front   # ../portafoliov1 → src/infrastructure/database/seed/data/*.json
+pnpm seed           # carga ese JSON; correrlo dos veces no duplica nada
+```
+
+El seed lee **JSON commiteado**, no el repositorio del front: un backend que no se
+puede sembrar porque alguien movió una carpeta ajena sería un acoplamiento absurdo
+entre dos proyectos que se despliegan por separado. `import:front` es la única pieza
+que cruza esa frontera, y se ejecuta a mano.
+
+Y siembra invocando los **casos de uso**, no con `INSERT`: así el contenido
+importado pasa por los mismos invariantes que el creado por API.
+
 ## Roles
 
 Dos roles, y una sola asimetría entre ellos:
@@ -181,6 +241,6 @@ y no editando el entorno.
 | 2     | Persistencia                 | ✅     |
 | 3     | Casos de uso de contenido    | ✅     |
 | 4     | Auth, roles y usuarios       | ✅     |
-| 5     | Capa HTTP                    | ⬜     |
-| 6     | Seed y contrato con el front | ⬜     |
+| 5     | Capa HTTP                    | ✅     |
+| 6     | Seed y contrato con el front | ✅     |
 | 7     | Deploy y operación           | ⬜     |

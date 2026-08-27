@@ -61,6 +61,18 @@ const config: Config = {
     '!src/domain/ports/**',
     // Violan las reglas a proposito: son la carnada del test de arquitectura.
     '!src/**/__fixtures__/**',
+    /*
+     * Los controllers son delegacion fina —validar, llamar a un caso de uso,
+     * presentar— y su garantia son los 83 tests de `test/http.e2e-spec.ts`, que
+     * hablan con la API por HTTP. Probarlos con casos de uso mockeados afirmaria
+     * que el controller llama a lo que se ve que llama.
+     *
+     * Los presenters y los filtros SI estan dentro: son funciones puras y ahi vive
+     * el contrato con el front y el formato de los errores.
+     */
+    '!src/interface/http/controllers/**',
+    // Script de un solo uso, verificado corriendolo (`pnpm seed`).
+    '!src/infrastructure/database/seed/**',
     '!src/infrastructure/database/migrations/**',
     '!src/infrastructure/database/data-source.ts',
   ],

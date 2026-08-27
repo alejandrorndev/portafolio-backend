@@ -64,6 +64,15 @@ export const envSchema = z.object({
   JWT_EXPIRES_IN_SECONDS: z.coerce.number().int().positive().default(28_800),
 
   /**
+   * Intentos de login permitidos por minuto y por IP.
+   *
+   * Configurable y no fijo en el codigo por dos razones: se ajusta sin volver a
+   * desplegar si resulta molesto, y los tests de integracion necesitan poder
+   * subirlo —hacen mas de cinco logins— o bajarlo, para comprobar el 429.
+   */
+  LOGIN_RATE_LIMIT: z.coerce.number().int().positive().default(5),
+
+  /**
    * Credenciales del PRIMER administrador, solo para el arranque inicial.
    *
    * Opcionales a proposito: sin ellas la API de lectura publica funciona igual, y
@@ -72,6 +81,20 @@ export const envSchema = z.object({
    */
   ADMIN_EMAIL: z.email().optional(),
   ADMIN_PASSWORD_HASH: z.string().min(1).optional(),
+
+  /**
+   * Credenciales de Swagger UI, propias y no las del administrador.
+   *
+   * En produccion, sin ellas la pagina NO se monta: publicar el mapa completo de
+   * la API de escritura sin candado es peor que no tener documentacion. En
+   * desarrollo se monta sin candado.
+   *
+   * Son distintas de las del admin para poder rotarlas sin tocar la cuenta que
+   * administra el contenido, y porque comparar un hash de bcrypt en cada archivo
+   * estatico de Swagger pondria 300 ms sobre cada uno.
+   */
+  DOCS_USER: z.string().min(1).optional(),
+  DOCS_PASSWORD: z.string().min(1).optional(),
 
   /**
    * Origenes permitidos, separados por coma. Vacio significa "ninguno", no

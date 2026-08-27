@@ -45,19 +45,17 @@ function readConfig(): TestDatabaseConfig {
    * El cinturon de seguridad. No es paranoia decorativa: basta un `.env` copiado
    * de otro proyecto para que estos tests apunten a una base con datos reales, y
    * lo primero que hacen es borrar el esquema.
+   *
+   * La comprobacion de que no coincide con la base de desarrollo vive en
+   * `useTestDatabase()` (test/helpers/app.ts), que es el unico momento en que los
+   * dos valores son distintos: despues de el, `DB_DATABASE_NAME` ya apunta a la
+   * base de pruebas a proposito.
    */
   if (!database.endsWith(REQUIRED_SUFFIX)) {
     throw new Error(
       `DB_DATABASE_NAME_TEST es "${database}" y debe terminar en "${REQUIRED_SUFFIX}". ` +
         'Los tests de integracion borran el esquema completo, asi que solo corren ' +
         'contra una base dedicada a pruebas.',
-    )
-  }
-
-  if (database === process.env['DB_DATABASE_NAME']) {
-    throw new Error(
-      'DB_DATABASE_NAME_TEST no puede ser la misma base que DB_DATABASE_NAME: ' +
-        'los tests borrarian los datos de desarrollo.',
     )
   }
 
