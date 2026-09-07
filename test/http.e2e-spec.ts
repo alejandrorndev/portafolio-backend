@@ -471,13 +471,21 @@ describe('API por HTTP', () => {
       ])
     })
 
-    it('rechaza un icono que el front no tiene vendorizado', async () => {
-      // La FK contra icon_catalog es la que lo impide, en la base de datos.
-      await http()
+    it('rechaza un icono que el front no tiene vendorizado, con 422 y no con 500', async () => {
+      /*
+       * Lo impide la FK contra `icon_catalog`, en la base de datos. Pero un dato
+       * malo del cliente NO es un error del servidor: el repositorio traduce el
+       * fallo de Postgres a un error de dominio, asi que sale como 422 con el
+       * formato uniforme y sin volcar la excepcion del driver en los logs.
+       */
+      const response = await http()
         .post('/v1/admin/skills/backend/items')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ name: 'Inventado', icon: 'no-existe-plain' })
-        .expect(500)
+        .expect(422)
+
+      expect(response.body).toMatchObject({ code: 'INVALID_CONTENT' })
+      expect((response.body as { message: string }).message).toContain('icono')
     })
 
     it('quitar un item exige rol admin', async () => {

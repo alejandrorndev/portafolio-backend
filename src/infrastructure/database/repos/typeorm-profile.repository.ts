@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { DataSource } from 'typeorm'
 import { PROFILE_ID, type Profile } from '@/domain/entities'
 import type { IProfileRepository } from '@/domain/ports'
+import { translatingErrors } from '@/infrastructure/database/database-error'
 import { ProfileMapper } from '@/infrastructure/database/mappers'
 import { ProfileOrmEntity } from '@/infrastructure/database/orm'
 
@@ -23,6 +24,8 @@ export class TypeOrmProfileRepository implements IProfileRepository {
   }
 
   async save(profile: Profile): Promise<void> {
-    await this.dataSource.getRepository(ProfileOrmEntity).save(ProfileMapper.toOrm(profile))
+    await translatingErrors(() =>
+      this.dataSource.getRepository(ProfileOrmEntity).save(ProfileMapper.toOrm(profile)),
+    )
   }
 }

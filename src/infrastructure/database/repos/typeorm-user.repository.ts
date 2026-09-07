@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { DataSource } from 'typeorm'
 import { User } from '@/domain/entities'
 import type { IUserRepository } from '@/domain/ports'
+import { translatingErrors } from '@/infrastructure/database/database-error'
 import { UserMapper } from '@/infrastructure/database/mappers'
 import { UserOrmEntity } from '@/infrastructure/database/orm'
 
@@ -40,7 +41,14 @@ export class TypeOrmUserRepository implements IUserRepository {
   }
 
   async save(user: User): Promise<void> {
-    await this.dataSource.getRepository(UserOrmEntity).save(UserMapper.toOrm(user))
+    /*
+     * El caso de uso ya comprueba que el correo este libre, pero dos peticiones
+     * simultaneas pueden pasar las dos por esa comprobacion: quien decide de
+     * verdad es el indice unico, y su error tiene que llegar traducido.
+     */
+    await translatingErrors(() =>
+      this.dataSource.getRepository(UserOrmEntity).save(UserMapper.toOrm(user)),
+    )
   }
 
   async delete(id: string): Promise<void> {
