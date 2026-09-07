@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { DataSource, type EntityManager } from 'typeorm'
 import type { SkillCategory } from '@/domain/entities'
 import type { ISkillCategoryRepository } from '@/domain/ports'
+import { translatingErrors } from '@/infrastructure/database/database-error'
 import { SkillCategoryMapper } from '@/infrastructure/database/mappers'
 import { SkillCategoryOrmEntity, SkillItemOrmEntity } from '@/infrastructure/database/orm'
 
@@ -42,7 +43,11 @@ export class TypeOrmSkillCategoryRepository implements ISkillCategoryRepository 
   }
 
   async save(category: SkillCategory): Promise<void> {
-    await this.dataSource.transaction((manager) => this.persist(manager, category))
+    // Un icono que no esta en `icon_catalog` lo rechaza la FK; aqui se convierte en
+    // un error de dominio para que salga como 422 y no como 500.
+    await translatingErrors(() =>
+      this.dataSource.transaction((manager) => this.persist(manager, category)),
+    )
   }
 
   async delete(id: string): Promise<void> {
@@ -51,11 +56,13 @@ export class TypeOrmSkillCategoryRepository implements ISkillCategoryRepository 
   }
 
   async saveAll(categories: readonly SkillCategory[]): Promise<void> {
-    await this.dataSource.transaction(async (manager) => {
-      for (const category of categories) {
-        await this.persist(manager, category)
-      }
-    })
+    await translatingErrors(() =>
+      this.dataSource.transaction(async (manager) => {
+        for (const category of categories) {
+          await this.persist(manager, category)
+        }
+      }),
+    )
   }
 
   private async persist(manager: EntityManager, category: SkillCategory): Promise<void> {

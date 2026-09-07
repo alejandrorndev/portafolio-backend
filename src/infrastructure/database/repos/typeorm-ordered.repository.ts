@@ -6,6 +6,7 @@ import {
   type ObjectLiteral,
 } from 'typeorm'
 import type { IOrderedRepository } from '@/domain/ports'
+import { translatingErrors } from '@/infrastructure/database/database-error'
 
 /** Lo minimo que el repositorio necesita saber traducir. */
 export interface OrmMapper<D, O extends ObjectLiteral> {
@@ -63,7 +64,12 @@ export abstract class TypeOrmOrderedRepository<
   }
 
   async save(entity: D): Promise<void> {
-    await this.dataSource.getRepository(this.target).save(this.mapper.toOrm(entity))
+    // `translatingErrors` convierte un fallo de Postgres —un CHECK, una FK— en un
+    // error de dominio. Sin eso saldria como 500, y el servidor no tiene la culpa
+    // de que el dato no cumpla una regla.
+    await translatingErrors(() =>
+      this.dataSource.getRepository(this.target).save(this.mapper.toOrm(entity)),
+    )
   }
 
   async delete(id: string): Promise<void> {
@@ -80,10 +86,12 @@ export abstract class TypeOrmOrderedRepository<
    * UPDATE fallaria.
    */
   async saveAll(entities: readonly D[]): Promise<void> {
-    await this.dataSource.transaction(async (manager: EntityManager) => {
-      for (const entity of entities) {
-        await manager.getRepository(this.target).save(this.mapper.toOrm(entity))
-      }
-    })
+    await translatingErrors(() =>
+      this.dataSource.transaction(async (manager: EntityManager) => {
+        for (const entity of entities) {
+          await manager.getRepository(this.target).save(this.mapper.toOrm(entity))
+        }
+      }),
+    )
   }
 }

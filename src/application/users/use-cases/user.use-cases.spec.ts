@@ -319,6 +319,19 @@ describe('administracion de usuarios', () => {
 describe('EnsureBootstrapAdminUseCase', () => {
   const credentials = { email: 'admin@portafolio.local', passwordHash: HASH }
 
+  /*
+   * El caso de uso registra lo que hizo, y esta bien que lo haga: en produccion
+   * ese log es la unica señal de que se creo un administrador. En los tests solo
+   * ensucia la salida y puede tapar un mensaje que si importe.
+   */
+  beforeEach(() => {
+    jest.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined)
+  })
+
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
   it('crea el primer admin cuando la base esta vacia', async () => {
     const repository = new FakeUserRepository([])
 
